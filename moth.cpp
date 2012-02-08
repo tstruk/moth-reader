@@ -20,35 +20,45 @@
 extern "C"{
 #include <gtk/gtk.h>
 }
+#include "moth.h"
 #include "gui.h"
 #include "moth_book.h"
 
 int main(int argc, char** agrv)
 {
-    int error = ERROR;
+    int error;
     moth_book *book;
-    moth_gui *gui = new moth_gui;
-    if(NULL == gui)
-    {
-        std::cerr<< "Failed to allocate memory for gui" << std::endl;
-        delete gui;
-        return ERROR;
-    }
-
-    std::cout << "argc = " << argc << std::endl;
-
+    moth_gui *gui;
     gtk_init(NULL, NULL);
-    error = gui->init_video();
-    if(SUCCESS != error)
+    try {
+        gui = new moth_gui;
+    }
+    catch(std::exception &e)
     {
-        std::cerr<< "Failed to initialize gui" << std::endl;
+        std::cerr<< e.what() << std::endl;
+        return FAIL;
+    }
+    try {
+        gui->init_video();
+    }
+    catch(std::exception &e)
+    {
+        std::cerr<< e.what() << std::endl;
         delete gui;
-        return ERROR;
+        return FAIL;
     }
     std::string *file;
     if(argc > 1)
     {
-        file = new std::string(agrv[1]);
+        try {
+            file = new std::string(agrv[1]);
+        }
+        catch(std::exception &e)
+        {
+            std::cerr<< e.what() << std::endl;
+            delete gui;
+            return FAIL;
+        }
     }
     else
     {
@@ -56,21 +66,39 @@ int main(int argc, char** agrv)
             char *path = moth_gui::book_select();
             if (path)
             {
-                file = new std::string(path);
+                try {
+                    file = new std::string(path);
+                }
+                catch(std::exception &e)
+                {
+                    std::cerr<< e.what() << std::endl;
+                    delete gui;
+                    free(path);
+                    return FAIL;
+                }
                 free(path);
             }
         }
         while(file->empty());
     }
-    
-    std::cout << "Open a file: " << file->c_str() << std::endl;
-    book = new moth_book(file);
-    if(NULL != book)
-    {
-        
+    try {
+        book = new moth_book(file);
     }
-    
-    error = gui->main_loop();
+    catch(std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        delete file;
+        delete gui;
+        return FAIL;
+    }
+    try { 
+        error = gui->main_loop();
+    }
+    catch(std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        error = FAIL;
+    }
     delete book;
     delete file;
     delete gui;

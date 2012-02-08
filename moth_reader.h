@@ -16,9 +16,15 @@
  *
  *************************************************************************/
 
+#ifndef __MOTH_READER__
+#define __MOTH_READER__
+
 class moth_reader {
 
     public:
-        
+        moth_reader();
+        virtual int get_pages() = 0;
+        virtual int get_page(int) = 0;
 };
 
+#endif

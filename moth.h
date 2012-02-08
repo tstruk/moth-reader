@@ -19,12 +19,41 @@
 #ifndef __MOTH_H__
 #define __MOTH_H__
 
-#define ERROR -1
+
+#include <iostream>
+#include <exception>
+
+#define FAIL -1
 #define SUCCESS 0
 
+class moth_exception : public std::exception
+{
+    virtual const char* what() const throw()
+    {
+        return "Error: Unknown moth exception";
+    }
+};
+
+class moth_bad_format : public moth_exception
+{
+    virtual const char* what() const throw()
+    {
+        return "Error: Unknown file format";
+    }
+};
+
+class moth_bad_gui : public moth_exception
+{
+    virtual const char* what() const throw()
+    {
+        return "Error: GUI error";
+    }
+};
+
 enum moth_format_type{
-    moth_format_pdf,
-    moth_format_mobi
+    moth_format_pdf = 0,
+    moth_format_mobi,
+    moth_format_not_supported
 };
 
 #endif

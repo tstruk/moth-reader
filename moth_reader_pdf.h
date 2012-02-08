@@ -16,5 +16,22 @@
  *
  *************************************************************************/
 
+#ifndef __MOTH_READER_PDF__
+#define __MOTH_READER_PDF__
 
+extern "C" {
+#include <poppler.h>
+}
+
+class moth_reader_pdf : public moth_reader {
+    PopplerDocument *doc;
+    public:
+    moth_reader_pdf(const char * const);
+    virtual int get_pages();
+    virtual int get_page(int);
+
+
+};
+
+#endif
 

@@ -16,10 +16,19 @@
  *
  *************************************************************************/
 
+#ifndef __MOTH_BOOK__
+#define __MOTH_BOOK__
+
 #include<string>
+#include "moth_reader.h"
 
 class moth_book {
-
+    moth_reader *reader;
+    std::string file_name;
+    moth_format_type get_type();
+    moth_format_type type;
     public:
     moth_book(std::string*);
+    ~moth_book();
 };
+#endif

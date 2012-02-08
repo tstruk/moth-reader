@@ -16,8 +16,31 @@
  *
  *************************************************************************/
 
+#include <string>
+#include "moth.h"
 #include "moth_reader.h"
+#include "moth_reader_pdf.h"
 
-class moth_reader_pdf : public moth_reader {
+moth_reader_pdf::moth_reader_pdf(const char *const file)
+{
+    std::string url = "file://";
+    url += file;
+    doc = poppler_document_new_from_file (url.c_str(), NULL, NULL);
+    if(NULL == doc)
+    {
+        throw moth_exception();
+    }
+    int pages = poppler_document_get_n_pages(doc);
+    std::cout << "Oppened doc: there are " << pages << " pages in it" << std::endl;
+}
 
-};
+int moth_reader_pdf::get_pages()
+{
+    return 0;
+}
+
+int moth_reader_pdf::get_page(int)
+{
+    g_object_unref(doc);
+    return 0;
+}

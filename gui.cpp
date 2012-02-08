@@ -62,7 +62,7 @@ int moth_gui::init_video()
     if(NULL == this->screen) {
         std::cerr<< "Set Video Mode failed: " <<
                      SDL_GetError( ) << std::endl;
-        return ERROR;
+        return FAIL;
     }
     return SUCCESS;
 };
