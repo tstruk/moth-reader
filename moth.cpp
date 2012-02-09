@@ -63,7 +63,16 @@ int main(int argc, char** agrv)
     else
     {
         do{
-            char *path = moth_gui::book_select();
+            char *path;
+            try{
+            path = moth_gui::book_select();
+            }
+            catch(std::exception &e)
+            {
+                std::cerr<< e.what() << std::endl;
+                delete gui;
+                return FAIL;
+            }
             if (path)
             {
                 try {

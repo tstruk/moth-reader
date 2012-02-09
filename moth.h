@@ -34,11 +34,27 @@ class moth_exception : public std::exception
     }
 };
 
+class moth_bad_file : public moth_exception
+{
+    virtual const char* what() const throw()
+    {
+        return "Error: Cannot open file";
+    }
+};
+
 class moth_bad_format : public moth_exception
 {
     virtual const char* what() const throw()
     {
         return "Error: Unknown file format";
+    }
+};
+
+class moth_bad_cancel : public moth_exception
+{
+    virtual const char* what() const throw()
+    {
+        return "Error: Operation canceled";
     }
 };
 

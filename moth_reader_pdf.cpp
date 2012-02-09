@@ -21,10 +21,10 @@
 #include "moth_reader.h"
 #include "moth_reader_pdf.h"
 
+
 moth_reader_pdf::moth_reader_pdf(const char *const file)
 {
-    std::string url = "file://";
-    url += file;
+    std::string url = get_url(file);
     doc = poppler_document_new_from_file (url.c_str(), NULL, NULL);
     if(NULL == doc)
     {

@@ -19,8 +19,11 @@
 #ifndef __MOTH_READER__
 #define __MOTH_READER__
 
-class moth_reader {
+#include <string>
 
+class moth_reader {
+    protected:
+        std::string get_url(const char * const path);
     public:
         moth_reader();
         virtual int get_pages() = 0;

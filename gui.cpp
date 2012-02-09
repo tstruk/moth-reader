@@ -21,6 +21,7 @@ extern "C" {
 #include <gtk/gtk.h>
 }
 #include "gui.h"
+#include "moth.h"
 
 moth_gui::~moth_gui()
 {
@@ -70,17 +71,23 @@ int moth_gui::init_video()
 char* moth_gui::book_select()
 {
     char *filename = NULL;
+    int response;
     GtkWidget *file_dialog = gtk_file_chooser_dialog_new ("Open a File",
                       NULL,
                       GTK_FILE_CHOOSER_ACTION_OPEN,
                       GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                       GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
                       NULL);
-    if (gtk_dialog_run (GTK_DIALOG (file_dialog)) == GTK_RESPONSE_ACCEPT)
+    response = gtk_dialog_run (GTK_DIALOG (file_dialog));
+    if (response == GTK_RESPONSE_ACCEPT)
     {
         filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER (file_dialog));
     }
     gtk_widget_destroy (file_dialog);
+    if(response == GTK_RESPONSE_CANCEL)
+    {
+        throw moth_bad_cancel();
+    }
     return filename;
 }
 
