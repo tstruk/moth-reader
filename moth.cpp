@@ -21,7 +21,7 @@ extern "C"{
 #include <gtk/gtk.h>
 }
 #include "moth.h"
-#include "gui.h"
+#include "moth_gui.h"
 #include "moth_book.h"
 
 int main(int argc, char** agrv)

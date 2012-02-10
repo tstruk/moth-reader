@@ -41,4 +41,8 @@ env = config.Finish();
 env.Program(
    target = 'moth',
    LIBS=['SDL', 'GL', 'gtk-x11-2.0', 'poppler-glib'],
-   source = [ 'moth.cpp', 'moth_reader.cpp', 'gui.cpp', 'moth_book.cpp', 'moth_reader_pdf.cpp' ] )
+   source = [ 'moth.cpp',
+              'moth_gui.cpp',
+              'moth_book.cpp',
+              'moth_reader.cpp',
+              'moth_reader_pdf.cpp' ] )

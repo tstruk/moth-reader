@@ -20,8 +20,8 @@
 extern "C" {
 #include <gtk/gtk.h>
 }
-#include "gui.h"
 #include "moth.h"
+#include "moth_gui.h"
 
 moth_gui::~moth_gui()
 {
@@ -38,7 +38,6 @@ moth_gui::moth_gui()
 
 int moth_gui::main_loop()
 {
-    
     return SUCCESS;
 }
 
