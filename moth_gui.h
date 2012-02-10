@@ -20,6 +20,9 @@
 
 extern "C" {
     #include <SDL.h>
+    #include <SDL_opengl.h>
+    #include <gl.h>
+    #include <glu.h>
 }
 #include "moth.h"
 
@@ -27,11 +30,14 @@ class moth_gui {
 	SDL_Surface *screen;
     int bpp;
     int flags;
+    int width;
+    int height;
     int handle_keyboard_event(SDL_Event *event);
     int handle_mouse_event(SDL_Event *event);
     int handle_event(SDL_Event *event, int *quit);
+    voind init_opengl();
     public:
-    int init_video();
+    void init_video();
     static char* book_select();
     int main_loop();
     moth_gui();

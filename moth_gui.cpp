@@ -19,6 +19,7 @@
 #include <iostream>
 extern "C" {
 #include <gtk/gtk.h>
+#include "SDL_syswm.h"
 }
 #include "moth.h"
 #include "moth_gui.h"
@@ -30,10 +31,7 @@ moth_gui::~moth_gui()
 
 moth_gui::moth_gui()
 {
-    if(SUCCESS != init_video())
-    {
-        std::cerr<< "Init Video failed" << std::endl;
-    }
+    init_video();
 }
 
 int moth_gui::main_loop()
@@ -41,30 +39,68 @@ int moth_gui::main_loop()
     return SUCCESS;
 }
 
-int moth_gui::init_video()
+void moth_gui::init_opengl()
+{
+    float ratio = (float) width / (float) height;
+    /* Our shading model--Gouraud (smooth). */
+    glShadeModel( GL_SMOOTH );
+
+    /* Culling. */
+    glCullFace( GL_BACK );
+    glFrontFace( GL_CCW );
+    glEnable( GL_CULL_FACE );
+
+    /* Set the clear color. */
+    glClearColor( 0, 0, 0, 0 );
+
+    /* Setup our viewport. */
+    glViewport( 0, 0, width, height );
+
+    /*
+     * Change to the projection matrix and set
+     * our viewing volume.
+     */
+    glMatrixMode( GL_PROJECTION );
+    glLoadIdentity( );
+    /*
+     * EXERCISE:
+     * Replace this with a call to glFrustum.
+     */
+    gluPerspective( 60.0, ratio, 1.0, 1024.0 );
+}
+
+void moth_gui::init_video()
 {
     /* initialize SDL */
-    int error = SDL_Init( SDL_INIT_VIDEO );
+    int error = SDL_Init(SDL_INIT_VIDEO);
     if ( error != SUCCESS ) {
         std::cerr<< "Video initialization failed: " <<
                      SDL_GetError( ) << std::endl;
-        return error;
+        throw moth_bad_gui();
     }
     const SDL_VideoInfo *info = SDL_GetVideoInfo();
+    if (!info) {
+        std::cerr<< "Get Video info failed: " <<
+                     SDL_GetError( ) << std::endl;
+        throw moth_bad_gui();
+    }
+    bpp = info->vfmt->BitsPerPixel;
+    width = info->current_w;
+    height = info->current_h;
     flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL;
-    bpp = 16;
     SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 5);
     SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 5);
     SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 5);
     SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16);
     SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1);
-    this->screen = SDL_SetVideoMode(info->current_w, info->current_h, bpp, flags);
-    if(NULL == this->screen) {
+    screen = SDL_SetVideoMode(width, height, bpp, flags);
+    if(NULL == screen) {
         std::cerr<< "Set Video Mode failed: " <<
                      SDL_GetError( ) << std::endl;
-        return FAIL;
+        throw moth_bad_gui();
     }
-    return SUCCESS;
+    SDL_WM_SetCaption("moth - " MOTH_VER_STRING, NULL);
+    init_opengl();
 };
 
 char* moth_gui::book_select()
@@ -80,13 +116,15 @@ char* moth_gui::book_select()
     response = gtk_dialog_run (GTK_DIALOG (file_dialog));
     if (response == GTK_RESPONSE_ACCEPT)
     {
-        filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER (file_dialog));
+        filename =
+            gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(file_dialog));
     }
-    gtk_widget_destroy (file_dialog);
-    if(response == GTK_RESPONSE_CANCEL)
+    else
     {
+        gtk_widget_destroy(file_dialog);
         throw moth_bad_cancel();
     }
+    gtk_widget_destroy(file_dialog);
     return filename;
 }
 
