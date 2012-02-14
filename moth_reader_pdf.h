@@ -21,16 +21,20 @@
 
 extern "C" {
 #include <poppler.h>
+#include <poppler-page.h>
 }
 
 class moth_reader_pdf : public moth_reader {
     PopplerDocument *doc;
+    PopplerPage **pages;
+    int num_pages;
+    moth_reader_pdf(moth_reader_pdf&);
+    moth_reader_pdf operator =(moth_reader_pdf&);
     public:
     moth_reader_pdf(const char * const);
+    virtual ~moth_reader_pdf();
     virtual int get_pages();
     virtual int get_page(int);
-
-
 };
 
 #endif

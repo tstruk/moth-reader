@@ -18,27 +18,29 @@
 #ifndef __MOTH_GUI__
 #define __MOTH_GUI__
 
-extern "C" {
-    #include <SDL.h>
-    #include <SDL_opengl.h>
-    #include <gl.h>
-    #include <glu.h>
-}
+#include <gtkmm.h>
+#include <SDL.h>
 #include "moth.h"
 
 class moth_gui {
+    Gtk::Window win;
 	SDL_Surface *screen;
     int bpp;
     int flags;
     int width;
     int height;
+    int running;
     int handle_keyboard_event(SDL_Event *event);
     int handle_mouse_event(SDL_Event *event);
     int handle_event(SDL_Event *event, int *quit);
-    voind init_opengl();
+    void init_opengl();
+    void handle_key(SDL_keysym* key);
+    void process_events();
+    void draw_screen();
+
     public:
     void init_video();
-    static char* book_select();
+    void book_select(std::string&);
     int main_loop();
     moth_gui();
     virtual ~moth_gui();

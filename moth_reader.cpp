@@ -24,7 +24,6 @@
 
 moth_reader::moth_reader()
 {
-    
 }
 
 std::string moth_reader::get_url(const char * const path)

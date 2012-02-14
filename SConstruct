@@ -2,14 +2,15 @@
 
 # Setup Build Environment
 env = Environment(
-   CCFLAGS='-ggdb -pg -g3',
-   LDFLAGS='-pg',
+   CCFLAGS='-std=gnu++0x -ggdb -g -O0',
+   LDFLAGS='-g',
    CPPPATH = ['/usr/include/GL']
 )
 
 # External Libs
 env.ParseConfig('pkg-config --cflags sdl || true')
-env.ParseConfig('pkg-config --cflags gtk+-2.0 || true')
+env.ParseConfig('pkg-config --cflags gl || true')
+env.ParseConfig('pkg-config --cflags gtkmm-2.4 || true')
 env.ParseConfig('pkg-config --cflags poppler-glib || true')
 
 config = Configure(env);
@@ -25,8 +26,8 @@ if not config.CheckLibWithHeader( 'SDL', 'SDL.h', 'C' ):
 	Exit(1)
 
 # Check if gtk-dev is there
-if not config.CheckLibWithHeader( 'gtk-x11-2.0', 'gtk/gtk.h', 'C' ):
-	print "libgtk2.0-dev Must be installed!"
+if not config.CheckLibWithHeader( 'gtkmm-2.4', 'gtkmm.h', 'C++' ):
+	print "libgtkmm-2.4-dev or newer must be installed!"
 	Exit(1)
 
 # Check if poppler-glib is there
@@ -40,9 +41,10 @@ env = config.Finish();
 # Build main program
 env.Program(
    target = 'moth',
-   LIBS=['SDL', 'GL', 'gtk-x11-2.0', 'poppler-glib'],
+   LIBS=['SDL', 'GL', 'GLU', 'gtkmm-2.4', 'poppler-glib'],
    source = [ 'moth.cpp',
               'moth_gui.cpp',
+              'moth_gui_file_choose.cpp',
               'moth_book.cpp',
               'moth_reader.cpp',
               'moth_reader_pdf.cpp' ] )

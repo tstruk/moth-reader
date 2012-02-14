@@ -19,9 +19,12 @@
 #ifndef __MOTH_H__
 #define __MOTH_H__
 
-
 #include <iostream>
 #include <exception>
+
+#define MOTH_VER_BIG 0
+#define MOTH_VER_SMALL 1
+#define MOTH_VER_STRING "0.1"
 
 #define FAIL -1
 #define SUCCESS 0
@@ -67,10 +70,22 @@ class moth_bad_gui : public moth_exception
 };
 
 enum moth_format_type{
-    moth_format_pdf = 0,
+    moth_format_pdf,
     moth_format_mobi,
     moth_format_not_supported
 };
 
+class moth{
+    private:
+        int argc;
+        char **argv;
+        moth(const moth&);
+        moth& operator=(const moth&);
+    public:
+        moth(int, char**);
+        ~moth();
+        void help(int, char**);
+        int run();
+};
 #endif
 

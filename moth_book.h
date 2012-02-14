@@ -28,7 +28,7 @@ class moth_book {
     moth_format_type get_type();
     moth_format_type type;
     public:
-    moth_book(std::string*);
+    moth_book(const std::string&);
     ~moth_book();
 };
 #endif

@@ -37,12 +37,11 @@ moth_format_type moth_book::get_type()
         }
     }
     return moth_format_not_supported;
-    
 }
 
-moth_book::moth_book(std::string *path)
+moth_book::moth_book(const std::string& path)
 {
-    file_name = path->c_str();
+    file_name = path;
     type = get_type();
     if(!(type < moth_format_not_supported))
     {
