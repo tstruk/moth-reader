@@ -23,7 +23,7 @@
 #include "moth.h"
 
 class moth_gui {
-    Gtk::Window win;
+    Gtk::Window *win;
 	SDL_Surface *screen;
     int bpp;
     int flags;

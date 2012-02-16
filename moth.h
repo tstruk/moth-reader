@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <exception>
+#include <gtkmm.h>
 
 #define MOTH_VER_BIG 0
 #define MOTH_VER_SMALL 1
@@ -79,6 +80,7 @@ class moth{
     private:
         int argc;
         char **argv;
+        Gtk::Main gtk_kit;
         moth(const moth&);
         moth& operator=(const moth&);
     public:

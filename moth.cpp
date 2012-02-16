@@ -23,11 +23,10 @@
 #include "moth_book.h"
 
 
-moth::moth(int argc, char** argv)
+moth::moth(int argc, char** argv): gtk_kit(argc, argv)
 {
     this->argc = argc;
     this->argv = argv;
-    Gtk::Main kit(argc, argv);
 }
 
 moth::~moth()
@@ -53,6 +52,7 @@ int moth::run()
         return FAIL;
     }
     gui->book_select(file);
+    gtk_kit.quit();
     try {
         gui->init_video();
     }

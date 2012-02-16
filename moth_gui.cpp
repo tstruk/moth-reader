@@ -28,12 +28,15 @@
 moth_gui::~moth_gui()
 {
     SDL_Quit();
+    delete win;
 }
 
 moth_gui::moth_gui()
 {
+    win = new Gtk::Window;
+    win->resize(1,1);
+    win->show();
     running = 1;
-    init_video();
 }
 
 void moth_gui::handle_key(SDL_keysym* key)
@@ -274,18 +277,24 @@ void moth_gui::init_opengl()
 
 void moth_gui::init_video()
 {
-    /* initialize SDL */
-    char windowhack[32];
-    int xwin = GDK_WINDOW_XID(win.gobj());
+#if 0
+/* TODO: This doesn't work */
+{
+char SDL_windowhack[32];
+Glib::RefPtr<Gdk::Screen> gscreen = win->get_screen();
+Glib::RefPtr<Gdk::Window> gwin = gscreen->get_root_window();
+sprintf(SDL_windowhack,"SDL_WINDOWID=%ld", GDK_WINDOW_XID((gwin->gobj())));
+std::cout << "!!! window id = " << SDL_windowhack << std::endl;
+putenv(SDL_windowhack);
+}
+#endif
+
     int error = SDL_Init(SDL_INIT_VIDEO);
     if ( error != SUCCESS ) {
         std::cerr<< "Video initialization failed: " <<
                      SDL_GetError( ) << std::endl;
         throw moth_bad_gui();
     }
-	sprintf(windowhack,"SDL_WINDOWID=%ld",
-			GDK_WINDOW_XWINDOW(xwin));
-	putenv(windowhack);
     const SDL_VideoInfo *info = SDL_GetVideoInfo();
     if (!info) {
         std::cerr<< "Get Video info failed: " <<
@@ -314,12 +323,11 @@ void moth_gui::init_video()
 void moth_gui::book_select(std::string &file)
 {
     char *filename;
-    int response;
-    moth_gui_file_ch *fc;
+    moth_gui_file_ch *fc = NULL;
 
     try {
         fc = new moth_gui_file_ch;
-        fc->choose_file(file);
+        fc->choose_file(file, *win);
     }
     catch(std::exception &e)
     {

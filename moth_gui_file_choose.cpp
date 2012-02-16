@@ -16,6 +16,7 @@
  *
  *************************************************************************/
 
+#include "moth_gui.h"
 #include "moth_gui_file_choose.h"
 
 moth_gui_file_ch::moth_gui_file_ch()
@@ -27,13 +28,11 @@ moth_gui_file_ch::~moth_gui_file_ch()
 {
 }
 
-void moth_gui_file_ch::choose_file(std::string& file)
+void moth_gui_file_ch::choose_file(std::string& file, Gtk::Window &win)
 {
-    Gtk::Window w;
-    w.show();
     Gtk::FileChooserDialog dialog("Please choose a file",
-          Gtk::FILE_CHOOSER_ACTION_OPEN);
-    dialog.set_transient_for(w);
+                                  Gtk::FILE_CHOOSER_ACTION_OPEN);
+    dialog.set_transient_for(win);
 
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
@@ -55,5 +54,4 @@ void moth_gui_file_ch::choose_file(std::string& file)
             break;
     }
     dialog.hide();
-    w.~Window();
 }

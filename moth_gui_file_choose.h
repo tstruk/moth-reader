@@ -21,12 +21,13 @@
 #define __MOTH_GUI_FILE_CH__
 
 #include <string>
+#include <gtkmm.h>
 
 class moth_gui_file_ch
 {
-public:
-  void choose_file(std::string&);
-  moth_gui_file_ch();
-  virtual ~moth_gui_file_ch();
+    public:
+    void choose_file(std::string&, Gtk::Window&);
+    moth_gui_file_ch();
+    virtual ~moth_gui_file_ch();
 };
 #endif
