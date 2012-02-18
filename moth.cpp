@@ -32,17 +32,18 @@ moth::moth(int argc, char** argv): gtk_kit(argc, argv)
 moth::~moth()
 {
 }
-void moth::help(int argc, char** agrv)
+void moth::help()
 {
-    std::cout<< "Use: " << agrv[0] <<
-                "[path to ebook]" << std::endl;
+    std::cout<< "Use: " << argv[0] <<
+                " [path to ebook]" << std::endl;
 }
 
 int moth::run()
 {
     moth_book *book;
     moth_gui *gui;
-    std::string file;
+
+    /* Create a GUI object */
     try {
         gui = new moth_gui;
     }
@@ -51,17 +52,30 @@ int moth::run()
         std::cerr<< e.what() << std::endl;
         return FAIL;
     }
-    gui->book_select(file);
-    gtk_kit.quit();
-    try {
-        gui->init_video();
+
+    /* Get the path to an ebook */
+    if(argc < 2) {
+        try{
+            gui->book_select(file);
+        }
+        catch(std::exception &e)
+        {
+            std::cerr<< e.what() << std::endl;
+            delete gui;
+            return FAIL;
+        }
     }
-    catch(std::exception &e)
+    else if (argc == 2){
+        file = argv[1];
+    }
+    else
     {
-        std::cerr<< e.what() << std::endl;
+        help();
         delete gui;
         return FAIL;
     }
+
+    /* Create the ebook */
     try {
         book = new moth_book(file);
     }
@@ -71,17 +85,32 @@ int moth::run()
         delete gui;
         return FAIL;
     }
+
+    /* Initialize GUI*/
+    try {
+        gui->init_video();
+    }
+    catch(std::exception &e)
+    {
+        std::cerr<< e.what() << std::endl;
+        delete gui;
+        delete book;
+        return FAIL;
+    }
+
     int error;
     try {
-        error = gui->main_loop();
+        error = gui->read_book(book);
     }
     catch(std::exception &e)
     {
         std::cerr << e.what() << std::endl;
+        delete gui;
+        delete book;
         return FAIL;
     }
-    delete book;
     delete gui;
+    delete book;
     return error;
 }
 
@@ -98,6 +127,7 @@ int main(int argc, char** argv)
         return FAIL;
     }
     error = m->run();
+    delete m;
     return error;
 }
 

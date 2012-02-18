@@ -49,7 +49,7 @@ moth_book::moth_book(const std::string& path)
     }
     if(type == moth_format_pdf)
     {
-        reader = new moth_reader_pdf(file_name.c_str());
+        reader = new moth_reader_pdf(file_name);
     }
     if(type == moth_format_mobi)
     {
@@ -62,3 +62,20 @@ moth_book::~moth_book()
 {
     delete reader;
 }
+
+int moth_book::get_pages()
+{
+    return reader->get_pages();
+}
+
+int moth_book::get_page(int number, GdkPixbuf *pixbuff)
+{
+    return reader->get_page(number, pixbuff);
+}
+
+int moth_book::get_page_size(int number, double *w, double *h)
+{
+    return reader->get_page_size(number, w, h);
+}
+
+

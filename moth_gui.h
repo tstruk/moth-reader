@@ -20,30 +20,40 @@
 
 #include <gtkmm.h>
 #include <SDL.h>
+#include <gl.h>
+
 #include "moth.h"
+#include "moth_book.h"
+
 
 class moth_gui {
     Gtk::Window *win;
 	SDL_Surface *screen;
+    moth_book *book;
     int bpp;
     int flags;
     int width;
     int height;
     int running;
-    int handle_keyboard_event(SDL_Event *event);
-    int handle_mouse_event(SDL_Event *event);
-    int handle_event(SDL_Event *event, int *quit);
+    int num_pages;
+    GLuint *textures;
+
     void init_opengl();
-    void handle_key(SDL_keysym* key);
+    void handle_key(SDL_keysym*);
+    void handle_resize(SDL_ResizeEvent*);
+    void handle_mouse_motion(SDL_MouseMotionEvent*);
+    void handle_mouse_button(SDL_MouseButtonEvent*);
     void process_events();
     void draw_screen();
-
+    void create_textures();
+    moth_gui(moth_gui&);
+    moth_gui& operator=(moth_gui&);
     public:
-    void init_video();
-    void book_select(std::string&);
-    int main_loop();
-    moth_gui();
-    virtual ~moth_gui();
+        void init_video();
+        void book_select(std::string&);
+        int read_book(moth_book*);
+        moth_gui();
+        virtual ~moth_gui();
 };
 
 #endif

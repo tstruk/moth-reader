@@ -16,17 +16,17 @@
  *
  *************************************************************************/
 
-#include <string>
 #include "moth.h"
 #include "moth_reader.h"
 #include "moth_reader_pdf.h"
 
 
-moth_reader_pdf::moth_reader_pdf(const char *const file)
+moth_reader_pdf::moth_reader_pdf(const std::string &file)
 {
-    std::string url = get_url(file);
+    std::string url;
     pages = NULL;
     pages = 0;
+    get_url(file, url);
     doc = poppler_document_new_from_file (url.c_str(), NULL, NULL);
     if(NULL == doc)
     {
@@ -52,6 +52,14 @@ moth_reader_pdf::moth_reader_pdf(const char *const file)
         std::cout << "page " << poppler_page_get_index(pages[i]) << " is size " << w << "x" << h << std::endl;
 
     }
+
+    PopplerPSFile *ps = poppler_ps_file_new(doc,
+                                            "/home/tadeusz/my.ps",
+                                            0,
+                                            2);
+    poppler_page_render_to_ps(pages[0], ps);
+
+
 }
 
 moth_reader_pdf::~moth_reader_pdf()
@@ -61,12 +69,20 @@ moth_reader_pdf::~moth_reader_pdf()
 
 int moth_reader_pdf::get_pages()
 {
-    return 0;
+    return num_pages;
 }
 
-int moth_reader_pdf::get_page(int)
+int moth_reader_pdf::get_page(int num, GdkPixbuf *pixbuff)
 {
-    g_object_unref(doc);
-    return 0;
+    double w, h, scale = 256;
+    poppler_page_get_size(pages[num], &w, &h);
+    poppler_page_render_to_pixbuf(pages[num], 0, 0, 10, 10, 10/w, 0, pixbuff);
+    return SUCCESS;
+}
+
+int moth_reader_pdf::get_page_size(int page, double *w, double *h)
+{
+    poppler_page_get_size(pages[page], w, h);
+    return SUCCESS;
 }
 

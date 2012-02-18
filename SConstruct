@@ -10,6 +10,7 @@ env = Environment(
 # External Libs
 env.ParseConfig('pkg-config --cflags sdl || true')
 env.ParseConfig('pkg-config --cflags gl || true')
+env.ParseConfig('pkg-config --cflags glew || true')
 env.ParseConfig('pkg-config --cflags gtkmm-2.4 || true')
 env.ParseConfig('pkg-config --cflags poppler-glib || true')
 
@@ -17,7 +18,12 @@ config = Configure(env);
 
 # Check if OpenGL is there
 if not config.CheckLibWithHeader( 'GL', 'gl.h', 'C' ):
-	print "OpenGL Must be installed!"
+	print "OpenGL Must be installed"
+	Exit(1)
+
+# Check if OpenGL Extension Wrangler is there
+if not config.CheckLibWithHeader( 'GLEW', 'glew.h', 'C' ):
+	print "OpenGL Extension Wrangler Must be installed (libglew-dev)"
 	Exit(1)
 
 # Check if SDL is there
@@ -41,7 +47,7 @@ env = config.Finish();
 # Build main program
 env.Program(
    target = 'moth',
-   LIBS=['SDL', 'GL', 'GLU', 'gtkmm-2.4', 'poppler-glib'],
+   LIBS=['SDL', 'GL', 'GLU', 'GLEW', 'gtkmm-2.4', 'poppler-glib'],
    source = [ 'moth.cpp',
               'moth_gui.cpp',
               'moth_gui_file_choose.cpp',

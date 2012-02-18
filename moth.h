@@ -70,6 +70,15 @@ class moth_bad_gui : public moth_exception
     }
 };
 
+class moth_bad_ogl : public moth_exception
+{
+    virtual const char* what() const throw()
+    {
+        return "Error: openGL error";
+    }
+};
+
+
 enum moth_format_type{
     moth_format_pdf,
     moth_format_mobi,
@@ -78,15 +87,16 @@ enum moth_format_type{
 
 class moth{
     private:
+        std::string file;
         int argc;
         char **argv;
         Gtk::Main gtk_kit;
+        void help();
         moth(const moth&);
         moth& operator=(const moth&);
     public:
         moth(int, char**);
         ~moth();
-        void help(int, char**);
         int run();
 };
 #endif

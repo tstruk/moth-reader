@@ -20,14 +20,18 @@
 #define __MOTH_READER__
 
 #include <string>
-
+extern "C" {
+#include <gdk-pixbuf/gdk-pixbuf.h>
+}
 class moth_reader {
     protected:
-        std::string get_url(const char * const path);
+        int num_pages;
+        void get_url(const std::string &file, std::string &url);
     public:
         moth_reader();
         virtual int get_pages() = 0;
-        virtual int get_page(int) = 0;
+        virtual int get_page(int, GdkPixbuf*) = 0;
+        virtual int get_page_size(int, double*, double*) = 0;
 };
 
 #endif

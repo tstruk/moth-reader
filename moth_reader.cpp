@@ -26,21 +26,22 @@ moth_reader::moth_reader()
 {
 }
 
-std::string moth_reader::get_url(const char * const path)
+void moth_reader::get_url(const std::string &path,
+                                std::string &url)
 {
-    FILE *f = fopen(path, "r");
+    FILE *f = fopen(path.c_str(), "r");
     if(!f)
     {
         throw moth_bad_file();
     }
     fclose(f);
-    std::string url = "file://";
+    url = "file://";
     const char * const dir_up = "../";
     char slash = '/';
     char *pwd = getenv("PWD");
     int up_ctr = 0;
     int loop;
-    const char *new_path = path;
+    const char *new_path = path.c_str();
     do{
         loop = strncmp(new_path, dir_up, 3);
         if(loop == 0){
@@ -59,6 +60,7 @@ std::string moth_reader::get_url(const char * const path)
         up_ctr--;
     }
     url += pwd;
+    url += "/";
     url += new_path;
-    return url;
 }
+
