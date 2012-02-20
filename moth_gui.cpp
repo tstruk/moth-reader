@@ -23,10 +23,14 @@
 #include "moth_gui.h"
 #include "moth_gui_file_choose.h"
 
+static const char *const font_file = "fonts/TSCu_Times.ttf";
+static const unsigned int max_pages = 700;
+
 moth_gui::~moth_gui()
 {
     glDeleteTextures(num_pages, textures);
     delete win;
+    delete font_renderer;
     SDL_Quit();
 }
 
@@ -35,6 +39,15 @@ moth_gui::moth_gui()
     win = new Gtk::Window;
     win->resize(1,1);
     win->show();
+    font_renderer = new FTExtrudeFont(font_file);
+    if(!font_renderer)
+    {
+        std::cerr << "Can not open file " << font_file << std::endl;
+        throw moth_bad_font();
+    }
+    font_renderer->FaceSize(30);
+    font_renderer->Depth(3);
+    font_renderer->CharMap(ft_encoding_unicode);
     running = 1;
 }
 
@@ -103,10 +116,16 @@ void moth_gui::create_textures()
     book->get_page_size(0, &w, &h);
     GdkPixbuf *pixbuff = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
                                         true, 8, w, h);
-
+    const char *str0 = "Please wait";
+    const char *str[] = {"Mapping textures %d%%",
+                         "Mapping textures %d%% .",
+                         "Mapping textures %d%% ..",
+                         "Mapping textures %d%% ..."};
+    char buff[30];
     textures = new GLuint[num_pages];
+
     glGenTextures(num_pages, textures);
-    for(int i = 0; i < num_pages; i++)
+    for(int i = 0, index = 0, ctr = 10; i < num_pages && i < max_pages; i++)
     {
         if(SUCCESS == book->get_page(i, pixbuff)){
             glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textures[i]);
@@ -122,7 +141,29 @@ void moth_gui::create_textures()
         {
             throw moth_bad_gui();
         }
-        std::cout << "Mapped texture " << i << " name " << textures[i] <<std::endl;
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
+    glPushMatrix();
+        glTranslatef(-0.9, -0.2, -10.0);
+        glColorMaterial(GL_FRONT, GL_DIFFUSE);
+        glTranslatef(0.0, 0.0, 20.0);
+        glTranslatef(-160.0, -240.0, 0.0);
+        glColor3f(0.3, 0.3, 1.0);
+        if(i == ctr)
+        {
+            ctr = i + 10;
+            index++;
+            index = index % 4;
+        }
+        sprintf(buff, str[index],
+                        (int)((((double)(i+1)) / ((double)num_pages)) * 100));
+        font_renderer->Render(buff);
+        glTranslatef(70.0, -30.0, 0.0);
+        font_renderer->Render(str0);
+    glPopMatrix();
+    SDL_GL_SwapBuffers();
     }
 }
 
@@ -136,15 +177,16 @@ void moth_gui::draw_screen()
     glLoadIdentity();
 
     /* Move down the z-axis. */
-    glTranslatef(0.0, 0.0, -2.0);
+    glTranslatef(0.0, 0.0, -5.0);
     glEnable(GL_TEXTURE_RECTANGLE_ARB);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textures[0]);
     glBegin(GL_QUADS);
-    glTexCoord2d(0.0,0.0); glVertex3d(-2.0,-1.0, 0.0);
-    glTexCoord2d(0.0,1.0); glVertex3d(-2.0,1.0, 0.0);
-    glTexCoord2d(1.0,1.0); glVertex3d(0.0,1.0, 0.0);
-    glTexCoord2d(1.0,0.0); glVertex3d(0.0,-1.0, 0.0);
+
+    glTexCoord2d(0.0,0.0); glVertex2d(-2.0, 2.0);
+    glTexCoord2d(0.0,1.0); glVertex2d(-2.0, -2.0);
+    glTexCoord2d(1.0,1.0); glVertex2d(2.0, -2.0);
+    glTexCoord2d(1.0,0.0); glVertex2d(2.0, 2.0);
     glEnd();
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     SDL_GL_SwapBuffers();
@@ -152,38 +194,12 @@ void moth_gui::draw_screen()
 
 void moth_gui::init_opengl()
 {
-    float ratio = (float) width / (float) height;
-    GLfloat mat_diffuse[] = { 0.7, 0.7, 0.7, 1.0 };
-    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-    GLfloat mat_shininess[] = { 100.0 };
-    if(!(glewGetExtension("GL_ARB_texture_rectangle") ||
-         glewGetExtension("GL_NV_texture_rectangle")))
-    {
-        std::cerr << "No support for texture_rectangle" << std::endl;
-        throw moth_bad_ogl();
-    }
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glShadeModel(GL_SMOOTH);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_AUTO_NORMAL);
-    glEnable(GL_NORMALIZE);
-	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-	glEnable(GL_DEPTH_TEST);
-    glOrtho(-1.50, 1.50, -1.50, 1.50, -1.50, 1.50);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
-    glEnable(GL_CULL_FACE);
-    glViewport( 0, 0, width, height );
-    /*
-     * Change to the projection matrix and set
-     * viewing volume.
-     */
-    gluPerspective( 60.0, ratio, 1.0, 1024.0 );
+    gluPerspective(90, 640.0f / 480.0f, 1, 1000);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(0.0, 0.0, 640.0f / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
 void moth_gui::init_video()

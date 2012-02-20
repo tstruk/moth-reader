@@ -36,8 +36,9 @@ void moth_reader::get_url(const std::string &path,
     }
     fclose(f);
     url = "file://";
-    const char * const dir_up = "../";
-    char slash = '/';
+    const char *const dir_up = "../";
+    const char *const current_dir = "./";
+    const char slash = '/';
     char *pwd = getenv("PWD");
     int up_ctr = 0;
     int loop;
@@ -51,7 +52,9 @@ void moth_reader::get_url(const std::string &path,
     } while(loop == 0);
     if(0 == up_ctr)
     {
-        pwd = (char*)"";
+        if((strncmp(new_path, current_dir, 2) != 0) &&
+           (path.find(slash) != std::string::npos))
+            pwd = (char*)"";
     }
     while(new_path && up_ctr)
     {

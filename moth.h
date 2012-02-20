@@ -78,6 +78,14 @@ class moth_bad_ogl : public moth_exception
     }
 };
 
+class moth_bad_font : public moth_exception
+{
+    virtual const char* what() const throw()
+    {
+        return "Error: font error";
+    }
+};
+
 
 enum moth_format_type{
     moth_format_pdf,

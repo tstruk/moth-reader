@@ -21,15 +21,16 @@
 #include <gtkmm.h>
 #include <SDL.h>
 #include <gl.h>
+#include <FTGL/ftgl.h>
 
 #include "moth.h"
 #include "moth_book.h"
-
 
 class moth_gui {
     Gtk::Window *win;
 	SDL_Surface *screen;
     moth_book *book;
+    FTFont *font_renderer;
     int bpp;
     int flags;
     int width;
