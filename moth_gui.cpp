@@ -51,7 +51,28 @@ moth_gui::moth_gui()
     running = 1;
 }
 
+static int pn = 0;
+
 void moth_gui::handle_resize(SDL_ResizeEvent *resize)
+{
+    width = resize->w;
+    height = resize->h;
+    float ratio = (float) width / (float) height;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(90, ratio, 1, 1024);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    std::cout << "resized to " << width << "x" << height << std::endl;
+}
+
+void moth_gui::handle_mouse_motion(SDL_MouseMotionEvent* motion)
+{
+
+}
+
+void moth_gui::handle_mouse_button(SDL_MouseButtonEvent* button)
 {
 
 }
@@ -62,18 +83,15 @@ void moth_gui::handle_key(SDL_keysym *key)
     case SDLK_ESCAPE:
         running = 0;
         break;
+    case SDLK_UP:
+        pn++;
+        break;
+    case SDLK_DOWN:
+        pn--;
+        break;
     default:
         break;
     }
-}
-void moth_gui::handle_mouse_motion(SDL_MouseMotionEvent* motion)
-{
-
-}
-
-void moth_gui::handle_mouse_button(SDL_MouseButtonEvent* button)
-{
-
 }
 
 int moth_gui::read_book(moth_book *book)
@@ -111,7 +129,7 @@ int moth_gui::read_book(moth_book *book)
 
 void moth_gui::create_textures()
 {
-    double w, h;
+    double w, h, wp, hp;
     num_pages = book->get_pages();
     book->get_page_size(0, &w, &h);
     GdkPixbuf *pixbuff = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
@@ -124,28 +142,39 @@ void moth_gui::create_textures()
     char buff[30];
     textures = new GLuint[num_pages];
 
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glGenTextures(num_pages, textures);
     for(int i = 0, index = 0, ctr = 10; i < num_pages && i < max_pages; i++)
     {
+        book->get_page_size(i, &wp, &hp);
+
+        if(w != wp ||  h != hp)
+        {
+            std::cerr << "Page "<< i <<" has different size " << hp << "x"
+                      << wp << std::endl;
+            throw moth_bad_pdf();
+        }
         if(SUCCESS == book->get_page(i, pixbuff)){
-            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textures[i]);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, w,
-                         h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                         gdk_pixbuf_get_pixels(pixbuff));
+            glBindTexture(GL_TEXTURE_2D, textures[i]);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                            GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                            GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                            GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                            GL_NEAREST);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA,
+                         GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
         }
         else
         {
             throw moth_bad_gui();
         }
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_LIGHTING);
-    glEnable(GL_DEPTH_TEST);
-    glPushMatrix();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        glPushMatrix();
         glTranslatef(-0.9, -0.2, -10.0);
         glColorMaterial(GL_FRONT, GL_DIFFUSE);
         glTranslatef(0.0, 0.0, 20.0);
@@ -154,17 +183,17 @@ void moth_gui::create_textures()
         if(i == ctr)
         {
             ctr = i + 10;
-            index++;
-            index = index % 4;
+            index = ++index % 4;
         }
         sprintf(buff, str[index],
                         (int)((((double)(i+1)) / ((double)num_pages)) * 100));
         font_renderer->Render(buff);
         glTranslatef(70.0, -30.0, 0.0);
         font_renderer->Render(str0);
-    glPopMatrix();
-    SDL_GL_SwapBuffers();
+        glPopMatrix();
+        SDL_GL_SwapBuffers();
     }
+    g_object_unref (pixbuff);
 }
 
 void moth_gui::draw_screen()
@@ -177,29 +206,46 @@ void moth_gui::draw_screen()
     glLoadIdentity();
 
     /* Move down the z-axis. */
+    glPushMatrix();
     glTranslatef(0.0, 0.0, -5.0);
-    glEnable(GL_TEXTURE_RECTANGLE_ARB);
+    glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textures[0]);
+    glBindTexture(GL_TEXTURE_2D, textures[pn]);
     glBegin(GL_QUADS);
 
-    glTexCoord2d(0.0,0.0); glVertex2d(-2.0, 2.0);
-    glTexCoord2d(0.0,1.0); glVertex2d(-2.0, -2.0);
-    glTexCoord2d(1.0,1.0); glVertex2d(2.0, -2.0);
-    glTexCoord2d(1.0,0.0); glVertex2d(2.0, 2.0);
+    glTexCoord2d(1.0,0.0); glVertex2d(-4.0, -4.0);
+    glTexCoord2d(0.0,0.0); glVertex2d(-4.0, 4.0);
+    glTexCoord2d(0.0,1.0); glVertex2d(4.0, 4.0);
+    glTexCoord2d(1.0,1.0); glVertex2d(4.0, -4.0);
+
     glEnd();
-    glDisable(GL_TEXTURE_RECTANGLE_ARB);
+    glDisable(GL_TEXTURE_2D);
+    glPushMatrix();
     SDL_GL_SwapBuffers();
 }
 
 void moth_gui::init_opengl()
 {
+    float ratio = (float) width / (float) height;
+    GLenum err = glewInit();
+    if(GLEW_OK != err)
+    {
+        std::cerr<< "Failed to initialize GL Extension Wrangler library"
+                 << std::endl;
+        throw moth_bad_ogl();
+    }
+    /* For texture sizes different than 2^m + 2b need opengl 2.0 or higher*/
+    if(!GLEW_VERSION_2_0)
+    {
+        std::cerr<< "OpenGL 2.0 or greater is required" << std::endl;
+        throw moth_bad_ogl();
+    }
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(90, 640.0f / 480.0f, 1, 1000);
+    gluPerspective(90, ratio, 1, 1024);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0.0, 0.0, 640.0f / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
 void moth_gui::init_video()
@@ -231,9 +277,9 @@ putenv(SDL_windowhack);
     bpp = info->vfmt->BitsPerPixel;
     width = info->current_w;
     height = info->current_h;
-    width = 800;
-    height = 600;
-    flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL;
+    //width = 800;
+    //height = 600;
+    flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
     SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 5);
     SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 5);
     SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 5);

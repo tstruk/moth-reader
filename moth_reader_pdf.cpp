@@ -25,14 +25,13 @@ moth_reader_pdf::moth_reader_pdf(const std::string &file)
 {
     std::string url;
     pages = NULL;
-    pages = 0;
+    num_pages = 0;
     get_url(file, url);
-    doc = poppler_document_new_from_file (url.c_str(), NULL, NULL);
+    doc = poppler_document_new_from_file(url.c_str(), NULL, NULL);
     if(NULL == doc)
     {
         throw moth_bad_file();
     }
-
     num_pages = poppler_document_get_n_pages(doc);
 
     try{
@@ -43,6 +42,7 @@ moth_reader_pdf::moth_reader_pdf(const std::string &file)
         std::cerr << e.what() << std::endl;
         throw;
     }
+
     for(int i = 0; i < num_pages; i++)
     {
         pages[i] = poppler_document_get_page(doc, i);
@@ -57,6 +57,8 @@ moth_reader_pdf::moth_reader_pdf(const std::string &file)
 
 moth_reader_pdf::~moth_reader_pdf()
 {
+    if(doc)
+        g_object_unref(doc);
     delete [] pages;
 }
 
@@ -68,7 +70,7 @@ int moth_reader_pdf::get_pages()
 int moth_reader_pdf::get_page(int num, GdkPixbuf *pixbuff)
 {
     double w, h;
-    poppler_page_get_size(pages[num], &w, &h);
+    get_page_size(num, &w, &h);
     poppler_page_render_to_pixbuf(pages[num], 0, 0, w, h, 1, 0, pixbuff);
     return SUCCESS;
 }

@@ -54,6 +54,14 @@ class moth_bad_format : public moth_exception
     }
 };
 
+class moth_bad_pdf : public moth_exception
+{
+    virtual const char* what() const throw()
+    {
+        return "Error: Not supported pdf format";
+    }
+};
+
 class moth_bad_cancel : public moth_exception
 {
     virtual const char* what() const throw()
@@ -82,10 +90,9 @@ class moth_bad_font : public moth_exception
 {
     virtual const char* what() const throw()
     {
-        return "Error: font error";
+        return "Error: Font error";
     }
 };
-
 
 enum moth_format_type{
     moth_format_pdf,
