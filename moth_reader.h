@@ -30,7 +30,7 @@ class moth_reader {
     public:
         moth_reader();
         virtual int get_pages() = 0;
-        virtual int get_page(int, GdkPixbuf*) = 0;
+        virtual int get_page(int, GdkPixbuf*&) = 0;
         virtual int get_page_size(int, double*, double*) = 0;
 };
 

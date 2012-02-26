@@ -19,11 +19,6 @@
 #include "moth.h"
 #include "moth_reader.h"
 #include "moth_reader_pdf.h"
-//#include <cairo.h>
-//#include <gdk/gdk.h>
-//extern "C" {
-//#include <evince-document.h>
-//};
 
 moth_reader_pdf::moth_reader_pdf(const std::string &file)
 {
@@ -77,17 +72,9 @@ int moth_reader_pdf::get_pages()
 int moth_reader_pdf::get_page(int num, GdkPixbuf *&pixbuff)
 {
     double w, h;
+    static cairo_surface_t *cario;
     get_page_size(num, &w, &h);
-//	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
-//	cairo_t *cairo = cairo_create(surface);
-//	poppler_page_render(pages[num], cairo);
-//	cairo_set_operator(cairo, CAIRO_OPERATOR_DEST_OVER);
-//	cairo_set_source_rgb(cairo, 1.0, 1.0, 1.0);
-//	cairo_paint(cairo);
-//	cairo_destroy(cairo);
-//    pixbuff = ev_document_misc_pixbuf_from_surface(surface);
-//    cairo_surface_destroy(surface);
-    poppler_page_render_to_pixbuf(pages[num], 0, 0, w, h, 1, 0, pixbuff);
+    poppler_page_render_to_pixbuf(pages[num], 0, 0, w, h, 2, 0, pixbuff);
     return SUCCESS;
 }
 

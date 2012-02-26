@@ -35,6 +35,8 @@ class moth_gui {
     int flags;
     int width;
     int height;
+    double page_width;
+    double page_height;
     int running;
     int num_pages;
     GLuint *textures;

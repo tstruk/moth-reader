@@ -36,7 +36,7 @@ class moth_reader_pdf : public moth_reader {
     moth_reader_pdf(const std::string&);
     virtual ~moth_reader_pdf();
     virtual int get_pages();
-    virtual int get_page(int, GdkPixbuf*);
+    virtual int get_page(int, GdkPixbuf*&);
     virtual int get_page_size(int page, double*, double*);
 };
 #endif

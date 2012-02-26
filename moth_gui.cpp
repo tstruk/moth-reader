@@ -51,8 +51,6 @@ moth_gui::moth_gui()
     running = 1;
 }
 
-static int pn = 0;
-
 void moth_gui::handle_resize(SDL_ResizeEvent *resize)
 {
     width = resize->w;
@@ -61,10 +59,9 @@ void moth_gui::handle_resize(SDL_ResizeEvent *resize)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(90, ratio, 1, 1024);
+    gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-    std::cout << "resized to " << width << "x" << height << std::endl;
 }
 
 void moth_gui::handle_mouse_motion(SDL_MouseMotionEvent* motion)
@@ -84,10 +81,10 @@ void moth_gui::handle_key(SDL_keysym *key)
         running = 0;
         break;
     case SDLK_UP:
-        pn++;
+        book->set_page(book->get_page() + 1);
         break;
     case SDLK_DOWN:
-        pn--;
+        book->set_page(book->get_page() - 1);
         break;
     default:
         break;
@@ -130,10 +127,16 @@ int moth_gui::read_book(moth_book *book)
 void moth_gui::create_textures()
 {
     double w, h, wp, hp;
+    GError *error = NULL;
     num_pages = book->get_pages();
     book->get_page_size(0, &w, &h);
     GdkPixbuf *pixbuff = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-                                        true, 8, w, h);
+                                        true, 8, w * 2, h * 2);
+    if(!pixbuff)
+    {
+        std::cerr << "Could not allocate buffer for texture" << std::endl;
+        throw moth_bad_gui();
+    }
     const char *str0 = "Please wait";
     const char *str[] = {"Mapping textures %d%%",
                          "Mapping textures %d%% .",
@@ -152,26 +155,26 @@ void moth_gui::create_textures()
         {
             std::cerr << "Page "<< i <<" has different size " << hp << "x"
                       << wp << std::endl;
+            g_object_unref(pixbuff);
             throw moth_bad_pdf();
         }
         if(SUCCESS == book->get_page(i, pixbuff)){
+            /* Enhance the picture */
+            gdk_pixbuf_saturate_and_pixelate(pixbuff, pixbuff, 2.0, 0);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBindTexture(GL_TEXTURE_2D, textures[i]);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                            GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                            GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                            GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                            GL_NEAREST);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA,
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w * 2, h * 2, 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
         }
         else
         {
+            std::cerr << "Could not get texture for page "<< i << std::endl;
             throw moth_bad_gui();
         }
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
         glPushMatrix();
@@ -193,40 +196,35 @@ void moth_gui::create_textures()
         glPopMatrix();
         SDL_GL_SwapBuffers();
     }
-    g_object_unref (pixbuff);
+    g_object_unref(pixbuff);
 }
 
 void moth_gui::draw_screen()
 {
+    /* Assume modelview */
     /* Clear the color and depth buffers. */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    /* We don't want to modify the projection matrix. */
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 
     /* Move down the z-axis. */
     glPushMatrix();
     glTranslatef(0.0, 0.0, -5.0);
     glEnable(GL_TEXTURE_2D);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glBindTexture(GL_TEXTURE_2D, textures[pn]);
+    glBindTexture(GL_TEXTURE_2D, textures[book->get_page()]);
     glBegin(GL_QUADS);
 
-    glTexCoord2d(1.0,0.0); glVertex2d(-4.0, -4.0);
-    glTexCoord2d(0.0,0.0); glVertex2d(-4.0, 4.0);
-    glTexCoord2d(0.0,1.0); glVertex2d(4.0, 4.0);
-    glTexCoord2d(1.0,1.0); glVertex2d(4.0, -4.0);
+    glTexCoord2d(0.0,0.0); glVertex2d(-800.0, 1000.0);
+    glTexCoord2d(1.0,0.0); glVertex2d(800.0, 1000.0);
+    glTexCoord2d(1.0,1.0); glVertex2d(800.0, -1000.0);
+    glTexCoord2d(0.0,1.0); glVertex2d(-800.0, -1000.0);
 
     glEnd();
     glDisable(GL_TEXTURE_2D);
-    glPushMatrix();
+    glPopMatrix();
     SDL_GL_SwapBuffers();
 }
 
 void moth_gui::init_opengl()
 {
-    float ratio = (float) width / (float) height;
     GLenum err = glewInit();
     if(GLEW_OK != err)
     {
@@ -240,12 +238,14 @@ void moth_gui::init_opengl()
         std::cerr<< "OpenGL 2.0 or greater is required" << std::endl;
         throw moth_bad_ogl();
     }
+    float ratio = (float) width / (float) height;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    //glFrustum();
     gluPerspective(90, ratio, 1, 1024);
+    gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
 void moth_gui::init_video()
