@@ -20,6 +20,8 @@
 #include <gl.h>
 #include <glu.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <algorithm>
+#include <unistd.h>
 #include "moth_gui.h"
 #include "moth_gui_file_choose.h"
 
@@ -46,22 +48,27 @@ moth_gui::moth_gui()
         throw moth_bad_font();
     }
     font_renderer->FaceSize(30);
-    font_renderer->Depth(3);
+    font_renderer->Depth(1);
     font_renderer->CharMap(ft_encoding_unicode);
     running = 1;
+    move_by_pages = 1;
+    zoom = 1.0;
+    shift_x = 0.0;
+    shift_y = 0.0;
 }
 
 void moth_gui::handle_resize(SDL_ResizeEvent *resize)
 {
     width = resize->w;
     height = resize->h;
-    float ratio = (float) width / (float) height;
+    float win_ratio = (float) width / (float) height;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(90, ratio, 1, 1024);
-    gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluPerspective(90, win_ratio, 1, 1024);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    ratio = std::min((width / page_width),(height / page_height));
 }
 
 void moth_gui::handle_mouse_motion(SDL_MouseMotionEvent* motion)
@@ -80,11 +87,32 @@ void moth_gui::handle_key(SDL_keysym *key)
     case SDLK_ESCAPE:
         running = 0;
         break;
+    case SDLK_RIGHT:
+        book->set_page(book->get_page() + move_by_pages);
+        move_by_pages = 2;
+        break;
+    case SDLK_LEFT:
+        book->set_page(book->get_page() - move_by_pages);
+        if(book->get_page() == 0)
+            move_by_pages = 1;
+        break;
     case SDLK_UP:
-        book->set_page(book->get_page() + 1);
+        shift_x += page_width * ratio * 0.1;
         break;
     case SDLK_DOWN:
-        book->set_page(book->get_page() - 1);
+        shift_x -= page_width * ratio * 0.1;
+        break;
+    case SDLK_z:
+        shift_y += page_width * ratio * 0.1;
+        break;
+    case SDLK_x:
+        shift_y -= page_width * ratio * 0.1;
+        break;
+    case SDLK_a:
+        zoom += 0.05;
+        break;
+    case SDLK_s:
+        zoom -= 0.05;
         break;
     default:
         break;
@@ -126,17 +154,22 @@ int moth_gui::read_book(moth_book *book)
 
 void moth_gui::create_textures()
 {
-    double w, h, wp, hp;
+    double w, h;
     GError *error = NULL;
     num_pages = book->get_pages();
-    book->get_page_size(0, &w, &h);
+    book->get_page_size(0, &page_width, &page_height);
     GdkPixbuf *pixbuff = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-                                        true, 8, w * 2, h * 2);
+                                        true, 8, page_width * 2, page_height * 2);
+
     if(!pixbuff)
     {
         std::cerr << "Could not allocate buffer for texture" << std::endl;
         throw moth_bad_gui();
     }
+
+    ratio = std::min((width / page_width),(height / page_height));
+    std::cout << "Ratio = " << ratio << std::endl;
+
     const char *str0 = "Please wait";
     const char *str[] = {"Mapping textures %d%%",
                          "Mapping textures %d%% .",
@@ -149,12 +182,12 @@ void moth_gui::create_textures()
     glGenTextures(num_pages, textures);
     for(int i = 0, index = 0, ctr = 10; i < num_pages && i < max_pages; i++)
     {
-        book->get_page_size(i, &wp, &hp);
+        book->get_page_size(i, &w, &h);
 
-        if(w != wp ||  h != hp)
+        if(page_width != w || page_height != h)
         {
-            std::cerr << "Page "<< i <<" has different size " << hp << "x"
-                      << wp << std::endl;
+            std::cerr << "Page "<< i <<" has different size " << h << "x"
+                      << w << std::endl;
             g_object_unref(pixbuff);
             throw moth_bad_pdf();
         }
@@ -167,7 +200,8 @@ void moth_gui::create_textures()
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w * 2, h * 2, 0, GL_RGBA,
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, page_width * 2,
+                         page_height * 2, 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
         }
         else
@@ -196,6 +230,7 @@ void moth_gui::create_textures()
         glPopMatrix();
         SDL_GL_SwapBuffers();
     }
+    glColor3f(1.0, 1.0, 1.0);
     g_object_unref(pixbuff);
 }
 
@@ -208,19 +243,63 @@ void moth_gui::draw_screen()
     /* Move down the z-axis. */
     glPushMatrix();
     glTranslatef(0.0, 0.0, -5.0);
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, textures[book->get_page()]);
-    glBegin(GL_QUADS);
+    if(book->get_page() == 0)
+    {
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textures[book->get_page()]);
+        glBegin(GL_QUADS);
+        glTexCoord2d(0.0,0.0); glVertex2d((-page_width * ratio * zoom) + shift_x,
+                                          (page_height * ratio * zoom) + shift_y);
+        glTexCoord2d(1.0,0.0); glVertex2d((page_width * ratio * zoom) + shift_x,
+                                          (page_height * ratio * zoom) + shift_y );
+        glTexCoord2d(1.0,1.0); glVertex2d((page_width * ratio * zoom) + shift_x,
+                                          (-page_height * ratio * zoom) + shift_y);
+        glTexCoord2d(0.0,1.0); glVertex2d((-page_width * ratio * zoom) + shift_x,
+                                          (-page_height * ratio * zoom) + shift_y);
+        glEnd();
 
-    glTexCoord2d(0.0,0.0); glVertex2d(-800.0, 1000.0);
-    glTexCoord2d(1.0,0.0); glVertex2d(800.0, 1000.0);
-    glTexCoord2d(1.0,1.0); glVertex2d(800.0, -1000.0);
-    glTexCoord2d(0.0,1.0); glVertex2d(-800.0, -1000.0);
+    }
+    else
+    {
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textures[book->get_page()]);
+        glBegin(GL_QUADS);
+        glTexCoord2d(0.0,0.0); glVertex2d((-page_width * 2 * ratio * zoom) + shift_x,
+                                          (page_height * ratio * zoom) + shift_y);
+        glTexCoord2d(1.0,0.0); glVertex2d(0.0 + shift_x,
+                                          (page_height * ratio * zoom) + shift_y);
+        glTexCoord2d(1.0,1.0); glVertex2d(0.0 + shift_x,
+                                          (-page_height * ratio * zoom) + shift_y);
+        glTexCoord2d(0.0,1.0); glVertex2d((-page_width * 2 * ratio * zoom) + shift_x,
+                                          (-page_height * ratio * zoom) + shift_y);
+        glEnd();
 
-    glEnd();
+        glBindTexture(GL_TEXTURE_2D, textures[book->get_page()+1]);
+        glBegin(GL_QUADS);
+        glTexCoord2d(0.0,0.0); glVertex2d(0 + shift_x,
+                                         (page_height * ratio * zoom) + shift_y);
+        glTexCoord2d(1.0,0.0); glVertex2d((page_width * 2 * ratio * zoom) + shift_x,
+                                          (page_height * ratio * zoom) + shift_y);
+        glTexCoord2d(1.0,1.0); glVertex2d((page_width * 2 * ratio * zoom) + shift_x,
+                                          (-page_height * ratio * zoom) + shift_y);
+        glTexCoord2d(0.0,1.0); glVertex2d(0 + shift_x,
+                                          (-page_height * ratio * zoom) + shift_y);
+        glEnd();
+    }
     glDisable(GL_TEXTURE_2D);
+
+    if(book->get_page() != 0)
+    {
+        glTranslatef(0.0, 0.0, 0.1);
+        glColor3f(0, 0, 0);
+        glBegin(GL_LINES);
+        glVertex2d(0 + shift_x, (page_height * ratio * zoom) + shift_x);
+        glVertex2d(0 + shift_x, (-page_height * ratio * zoom) + shift_x);
+        glEnd();
+    }
     glPopMatrix();
     SDL_GL_SwapBuffers();
+    usleep(5000);
 }
 
 void moth_gui::init_opengl()
@@ -238,14 +317,13 @@ void moth_gui::init_opengl()
         std::cerr<< "OpenGL 2.0 or greater is required" << std::endl;
         throw moth_bad_ogl();
     }
-    float ratio = (float) width / (float) height;
+    float win_ratio = (float) width / (float) height;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    //glFrustum();
-    gluPerspective(90, ratio, 1, 1024);
-    gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluPerspective(90, win_ratio, 1, 1024);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
 void moth_gui::init_video()

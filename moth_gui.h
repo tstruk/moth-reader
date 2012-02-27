@@ -33,12 +33,17 @@ class moth_gui {
     FTFont *font_renderer;
     int bpp;
     int flags;
-    int width;
-    int height;
+    double width;
+    double height;
     double page_width;
     double page_height;
+    double ratio;
+    double zoom;
+    double shift_x;
+    double shift_y;
     int running;
     int num_pages;
+    int move_by_pages;
     GLuint *textures;
 
     void init_opengl();
