@@ -44,10 +44,15 @@ class moth_gui {
     int running;
     int num_pages;
     int move_by_pages;
+    int moveing_page;
+    int idle;
+    uint8_t shift_state;
+    uint8_t button_state;
     GLuint *textures;
 
     void init_opengl();
-    void handle_key(SDL_keysym*);
+    void handle_key_down(SDL_keysym*);
+    void handle_key_up(SDL_keysym*);
     void handle_resize(SDL_ResizeEvent*);
     void handle_mouse_motion(SDL_MouseMotionEvent*);
     void handle_mouse_button(SDL_MouseButtonEvent*);

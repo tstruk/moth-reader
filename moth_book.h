@@ -34,8 +34,11 @@ class moth_book {
     moth_book(const std::string&);
     void set_page(unsigned int const page)
     {
-        if(page >= reader->get_pages())
+        int nr = (int) page;
+        if(nr < 0)
             current_page = 0;
+        else if(page >= reader->get_pages())
+            current_page = reader->get_pages() - 1;
         else
             current_page = page;
     }
@@ -47,5 +50,17 @@ class moth_book {
     int get_pages();
     int get_page(int, GdkPixbuf *&pixbuff);
     int get_page_size(int, double*, double*);
+    bool page_first()
+    {
+        if (current_page == 0)
+            return true;
+        return false;
+    }
+    bool page_last()
+    {
+        if (current_page == reader->get_pages() - 1)
+            return true;
+        return false;
+    }
 };
 #endif
