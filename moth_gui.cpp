@@ -31,6 +31,7 @@ const unsigned int moth_gui::max_pages = 700;
 const unsigned int moth_gui::idle_sleep_time = 5000;
 const unsigned int moth_gui::moving_sleep_time = 0;
 const unsigned int moth_gui::moving_ctr = 180;
+const unsigned int moth_gui::move_ctr_by = 20;
 
 moth_gui::~moth_gui()
 {
@@ -457,7 +458,7 @@ void moth_gui::draw_screen()
 			glMapGrid2f(evaluators, 0.0, 1.0, evaluators, 0.0, 1.0);
 			glEvalMesh2(GL_FILL, 0, evaluators, 0, evaluators);
 			glPopMatrix();
-			moving_page_ctr -=20;
+			moving_page_ctr -= move_ctr_by;
 			if (!moving_page_ctr) {
 				page_moved();
 			}

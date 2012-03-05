@@ -62,6 +62,7 @@ class moth_gui
 	static const unsigned int idle_sleep_time;
 	static const unsigned int moving_sleep_time;
 	static const unsigned int moving_ctr;
+	static const unsigned int move_ctr_by;
 
 	void init_opengl();
 	void handle_key_down(SDL_keysym*);
