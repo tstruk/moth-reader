@@ -29,7 +29,7 @@ static const char *const font_file = "fonts/TSCu_Times.ttf";
 
 const unsigned int moth_gui::max_pages = 700;
 const unsigned int moth_gui::idle_sleep_time = 5000;
-const unsigned int moth_gui::moving_sleep_time = 0;
+const unsigned int moth_gui::moving_sleep_time = 10;
 const unsigned int moth_gui::moving_ctr = 180;
 const unsigned int moth_gui::move_ctr_by = 20;
 
@@ -313,7 +313,7 @@ void moth_gui::draw_screen()
 			page_moved();
 		}
 	} else {
-		z_shift = 200;
+		z_shift = 200 * zoom;
 		page_one[0][0][0] = (-page_width * 2 * ratio * zoom) + shift_x;
 		page_one[0][0][1] = (page_height * ratio * zoom) + shift_y;
 		page_one[0][0][2] = 0;
@@ -407,24 +407,24 @@ void moth_gui::draw_screen()
 			int angle;
 			GLfloat x1, x2;
 			if(dir == move_right) {
-				x1 = shift_x;
-				x2 = (page_width * 2 * ratio * zoom) + shift_x;
+				x1 = 0;
+				x2 = (page_width * 1.5 *  ratio * zoom);
 				angle = -(moving_ctr - moving_page_ctr);
 			} else {
-				x1 = (-page_width * 2 * ratio * zoom) - shift_x;
-				x2 = shift_x;
+				x1 = (-page_width * 1.5 * ratio * zoom);
+				x2 = 0;
 				angle = moving_ctr - moving_page_ctr;
 			}
-
+            z_shift = 200 * zoom;
 			glPushMatrix();
+			glTranslatef(shift_x, 0, 0);
 			glRotatef(angle, 0.0, 1.0, 0.0);
-			//glTranslatef(shift_x, 0, 0);
 			page_moving[0][0][0] = x1;
 			page_moving[0][0][1] = (page_height * ratio * zoom) + shift_y;
 			page_moving[0][0][2] = 0;
 			page_moving[0][1][0] = x1 / 2;
 			page_moving[0][1][1] = (page_height * ratio * zoom) + shift_y;
-			page_moving[0][1][2] = 0;
+			page_moving[0][1][2] = z_shift;
 			page_moving[0][2][0] = x2;
 			page_moving[0][2][1] = (page_height * ratio * zoom) + shift_y;
 			page_moving[0][2][2] = 0;
@@ -434,7 +434,7 @@ void moth_gui::draw_screen()
 			page_moving[1][0][2] = 0;
 			page_moving[1][1][0] = x1 / 2;
 			page_moving[1][1][1] = ((page_height * ratio * zoom) + shift_y) / 2;
-			page_moving[1][1][2] = 0;
+			page_moving[1][1][2] = z_shift;
 			page_moving[1][2][0] = x2;
 			page_moving[1][2][1] = ((page_height * ratio * zoom) + shift_y) / 2;
 			page_moving[1][2][2] = 0;
@@ -444,7 +444,7 @@ void moth_gui::draw_screen()
 			page_moving[2][0][2] = 0;
 			page_moving[2][1][0] = x1 / 2;
 			page_moving[2][1][1] = (-page_height * ratio * zoom) + shift_y;
-			page_moving[2][1][2] = 0;
+			page_moving[2][1][2] = z_shift;
 			page_moving[2][2][0] = x2;
 			page_moving[2][2][1] = (-page_height * ratio * zoom) + shift_y;
 			page_moving[2][2][2] = 0;
