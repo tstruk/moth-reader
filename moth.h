@@ -32,87 +32,80 @@
 
 class moth_exception : public std::exception
 {
-    virtual const char* what() const throw()
-    {
-        return "Error: Unknown moth exception";
-    }
+	virtual const char* what() const throw() {
+		return "Error: Unknown moth exception";
+	}
 };
 
 class moth_bad_file : public moth_exception
 {
-    virtual const char* what() const throw()
-    {
-        return "Error: Cannot open file";
-    }
+	virtual const char* what() const throw() {
+		return "Error: Cannot open file";
+	}
 };
 
 class moth_bad_format : public moth_exception
 {
-    virtual const char* what() const throw()
-    {
-        return "Error: Unknown file format";
-    }
+	virtual const char* what() const throw() {
+		return "Error: Unknown file format";
+	}
 };
 
 class moth_bad_pdf : public moth_exception
 {
-    virtual const char* what() const throw()
-    {
-        return "Error: Not supported pdf format";
-    }
+	virtual const char* what() const throw() {
+		return "Error: Not supported pdf format";
+	}
 };
 
 class moth_bad_cancel : public moth_exception
 {
-    virtual const char* what() const throw()
-    {
-        return "Error: Operation canceled";
-    }
+	virtual const char* what() const throw() {
+		return "Error: Operation canceled";
+	}
 };
 
 class moth_bad_gui : public moth_exception
 {
-    virtual const char* what() const throw()
-    {
-        return "Error: GUI error";
-    }
+	virtual const char* what() const throw() {
+		return "Error: GUI error";
+	}
 };
 
 class moth_bad_ogl : public moth_exception
 {
-    virtual const char* what() const throw()
-    {
-        return "Error: openGL error";
-    }
+	virtual const char* what() const throw() {
+		return "Error: openGL error";
+	}
 };
 
 class moth_bad_font : public moth_exception
 {
-    virtual const char* what() const throw()
-    {
-        return "Error: Font error";
-    }
+	virtual const char* what() const throw() {
+		return "Error: Font error";
+	}
 };
 
-enum moth_format_type{
-    moth_format_pdf,
-    moth_format_mobi,
-    moth_format_not_supported
+enum moth_format_type {
+	moth_format_pdf,
+	moth_format_mobi,
+	moth_format_not_supported
 };
 
-class moth{
-    private:
-        std::string file;
-        int argc;
-        char **argv;
-        Gtk::Main gtk_kit;
-        void help();
-        moth(const moth&);
-        moth& operator=(const moth&);
-    public:
-        moth(int, char**);
-        ~moth();
-        int run();
+class moth
+{
+private:
+	std::string file;
+	int argc;
+	char **argv;
+	Gtk::Main gtk_kit;
+	void help();
+	moth(const moth&);
+	moth& operator=(const moth&);
+public:
+	moth(int, char**);
+	~moth();
+	int run();
 };
 #endif
 

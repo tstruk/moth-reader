@@ -27,43 +27,40 @@ moth_reader::moth_reader()
 }
 
 void moth_reader::get_url(const std::string &path,
-                                std::string &url)
+                          std::string &url)
 {
-    FILE *f = fopen(path.c_str(), "r");
-    if(!f)
-    {
-        throw moth_bad_file();
-    }
-    fclose(f);
-    url = "file://";
-    const char *const dir_up = "../";
-    const char *const current_dir = "./";
-    const char slash = '/';
-    char *pwd = getenv("PWD");
-    int up_ctr = 0;
-    int loop;
-    const char *new_path = path.c_str();
-    do{
-        loop = strncmp(new_path, dir_up, 3);
-        if(loop == 0){
-            up_ctr++;
-            new_path += 3;
-        }
-    } while(loop == 0);
-    if(0 == up_ctr)
-    {
-        if((strncmp(new_path, current_dir, 2) != 0) &&
-           (path.find(slash) != std::string::npos))
-            pwd = (char*)"";
-    }
-    while(new_path && up_ctr)
-    {
-        char *p = rindex(pwd, slash);
-        *p = '\0';
-        up_ctr--;
-    }
-    url += pwd;
-    url += "/";
-    url += new_path;
+	FILE *f = fopen(path.c_str(), "r");
+	if(!f) {
+		throw moth_bad_file();
+	}
+	fclose(f);
+	url = "file://";
+	const char *const dir_up = "../";
+	const char *const current_dir = "./";
+	const char slash = '/';
+	char *pwd = getenv("PWD");
+	int up_ctr = 0;
+	int loop;
+	const char *new_path = path.c_str();
+	do {
+		loop = strncmp(new_path, dir_up, 3);
+		if(loop == 0) {
+			up_ctr++;
+			new_path += 3;
+		}
+	} while(loop == 0);
+	if(0 == up_ctr) {
+		if((strncmp(new_path, current_dir, 2) != 0) &&
+		    (path.find(slash) != std::string::npos))
+			pwd = (char*)"";
+	}
+	while(new_path && up_ctr) {
+		char *p = rindex(pwd, slash);
+		*p = '\0';
+		up_ctr--;
+	}
+	url += pwd;
+	url += "/";
+	url += new_path;
 }
 

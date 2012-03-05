@@ -22,61 +22,57 @@
 #include "moth_reader_pdf.h"
 
 static const char *const formats[] = {".pdf",
-                                      ".mobi"};
+                                      ".mobi"
+                                     };
 
 moth_format_type moth_book::get_type()
 {
-    moth_format_type type = moth_format_pdf;
-    for(int i = 0; i < moth_format_not_supported; i++)
-    {
-        type = static_cast <moth_format_type>(i);
-        if(std::string::npos != file_name.find(formats[i],
-                                    file_name.length() - strlen(formats[i])))
-        {
-            return type;
-        }
-    }
-    return moth_format_not_supported;
+	moth_format_type type = moth_format_pdf;
+	for(int i = 0; i < moth_format_not_supported; i++) {
+		type = static_cast <moth_format_type>(i);
+		if(std::string::npos != file_name.find(formats[i],
+		                                       file_name.length() - strlen(formats[i]))) {
+			return type;
+		}
+	}
+	return moth_format_not_supported;
 }
 
 moth_book::moth_book(const std::string& path)
 {
-    file_name = path;
-    type = get_type();
-    if(!(type < moth_format_not_supported))
-    {
-        throw moth_bad_format();
-    }
-    if(type == moth_format_pdf)
-    {
-        reader = new moth_reader_pdf(file_name);
-        current_page = 0;
-    }
-    if(type == moth_format_mobi)
-    {
-        /* Not yet supported */
-        throw moth_bad_format();
-    }
+	file_name = path;
+	type = get_type();
+	if(!(type < moth_format_not_supported)) {
+		throw moth_bad_format();
+	}
+	if(type == moth_format_pdf) {
+		reader = new moth_reader_pdf(file_name);
+		current_page = 0;
+	}
+	if(type == moth_format_mobi) {
+		/* Not yet supported */
+		throw moth_bad_format();
+	}
 }
 
 moth_book::~moth_book()
 {
-    delete reader;
+	delete reader;
 }
 
 int moth_book::get_pages()
 {
-    return reader->get_pages();
+	return reader->get_pages();
 }
 
 int moth_book::get_page(int number, GdkPixbuf *&pixbuff)
 {
-    return reader->get_page(number, pixbuff);
+	return reader->get_page(number, pixbuff);
 }
 
 int moth_book::get_page_size(int number, double *w, double *h)
 {
-    return reader->get_page_size(number, w, h);
+	return reader->get_page_size(number, w, h);
 }
 
 

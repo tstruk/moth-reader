@@ -25,9 +25,9 @@
 
 class moth_gui_file_ch
 {
-    public:
-    void choose_file(std::string&, Gtk::Window&);
-    moth_gui_file_ch();
-    virtual ~moth_gui_file_ch();
+public:
+	void choose_file(std::string&, Gtk::Window&);
+	moth_gui_file_ch();
+	virtual ~moth_gui_file_ch();
 };
 #endif

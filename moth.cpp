@@ -25,8 +25,8 @@
 
 moth::moth(int argc, char** argv): gtk_kit(argc, argv)
 {
-    this->argc = argc;
-    this->argv = argv;
+	this->argc = argc;
+	this->argv = argv;
 }
 
 moth::~moth()
@@ -34,100 +34,85 @@ moth::~moth()
 }
 void moth::help()
 {
-    std::cout<< "Use: " << argv[0] <<
-                " [path to ebook]" << std::endl;
+	std::cout<< "Use: " << argv[0] <<
+	         " [path to ebook]" << std::endl;
 }
 
 int moth::run()
 {
-    moth_book *book;
-    moth_gui *gui;
+	moth_book *book;
+	moth_gui *gui;
 
-    /* Create a GUI object */
-    try {
-        gui = new moth_gui;
-    }
-    catch(std::exception &e)
-    {
-        std::cerr<< e.what() << std::endl;
-        return FAIL;
-    }
+	/* Create a GUI object */
+	try {
+		gui = new moth_gui;
+	} catch(std::exception &e) {
+		std::cerr<< e.what() << std::endl;
+		return FAIL;
+	}
 
-    /* Get the path to an ebook */
-    if(argc < 2) {
-        try{
-            gui->book_select(file);
-        }
-        catch(std::exception &e)
-        {
-            std::cerr<< e.what() << std::endl;
-            delete gui;
-            return FAIL;
-        }
-    }
-    else if (argc == 2){
-        file = argv[1];
-    }
-    else
-    {
-        help();
-        delete gui;
-        return FAIL;
-    }
+	/* Get the path to an ebook */
+	if(argc < 2) {
+		try {
+			gui->book_select(file);
+		} catch(std::exception &e) {
+			std::cerr<< e.what() << std::endl;
+			delete gui;
+			return FAIL;
+		}
+	} else if (argc == 2) {
+		file = argv[1];
+	} else {
+		help();
+		delete gui;
+		return FAIL;
+	}
 
-    /* Create the ebook */
-    try {
-        book = new moth_book(file);
-    }
-    catch(std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-        delete gui;
-        return FAIL;
-    }
+	/* Create the ebook */
+	try {
+		book = new moth_book(file);
+	} catch(std::exception &e) {
+		std::cerr << e.what() << std::endl;
+		delete gui;
+		return FAIL;
+	}
 
-    /* Initialize GUI*/
-    try {
-        gui->init_video();
-    }
-    catch(std::exception &e)
-    {
-        std::cerr<< e.what() << std::endl;
-        delete gui;
-        delete book;
-        return FAIL;
-    }
+	/* Initialize GUI*/
+	try {
+		gui->init_video();
+	} catch(std::exception &e) {
+		std::cerr<< e.what() << std::endl;
+		delete gui;
+		delete book;
+		return FAIL;
+	}
 
-    int error;
-    try {
-        error = gui->read_book(book);
-    }
-    catch(std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-        delete gui;
-        delete book;
-        return FAIL;
-    }
-    delete gui;
-    delete book;
-    return error;
+	int error;
+	try {
+		error = gui->read_book(book);
+	} catch(std::exception &e) {
+		std::cerr << e.what() << std::endl;
+		delete gui;
+		delete book;
+		return FAIL;
+	}
+	delete gui;
+	delete book;
+	return error;
 }
 
 int main(int argc, char** argv)
 {
-    int error;
-    moth *m;
-    try{
-        m = new moth(argc, argv);
-    }
-    catch(std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-        return FAIL;
-    }
-    error = m->run();
-    delete m;
-    return error;
+	int error;
+	moth *m;
+	try {
+		m = new moth(argc, argv);
+	} catch(std::exception &e) {
+		std::cerr << e.what() << std::endl;
+		return FAIL;
+	}
+	error = m->run();
+	delete m;
+	return error;
 }
 
