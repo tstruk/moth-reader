@@ -33,21 +33,13 @@ class moth_book
 	moth_book& operator=(moth_book&);
 public:
 	moth_book(const std::string&);
-	void set_page(unsigned int const page) {
-		int nr = (int) page;
-		if(nr < 0)
-			current_page = 0;
-		else if(page >= reader->get_pages())
-			current_page = reader->get_pages() - 1;
-		else
-			current_page = page;
-	}
+	virtual ~moth_book();
+	void set_page(unsigned int const page);
 	unsigned int get_page(void) {
 		return current_page;
 	}
-	virtual ~moth_book();
-	int get_pages();
 	int get_page(int, GdkPixbuf *&pixbuff);
+	int get_pages();
 	int get_page_size(int, double*, double*);
 	bool page_first() {
 		if (current_page == 0)

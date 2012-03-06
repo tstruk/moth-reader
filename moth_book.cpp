@@ -75,4 +75,14 @@ int moth_book::get_page_size(int number, double *w, double *h)
 	return reader->get_page_size(number, w, h);
 }
 
+void moth_book::set_page(unsigned int const page)
+{
+	int nr = (int) page;
+    if(nr < 0)
+	    current_page = 0;
+	else if(page >= reader->get_pages())
+		current_page = reader->get_pages() - 1;
+	else
+		current_page = page;
+}
 
