@@ -56,10 +56,12 @@ class moth_gui
 	move_direction dir;
 	uint32_t moving_page_ctr;
 	GLuint *textures;
+	uint8_t *textures_state;
 	uint32_t running     : 1;
 	uint32_t moving_page : 1;
 
-	static const unsigned int max_pages;
+	static const unsigned int load_pages;
+	static const unsigned int load_pages_at_start;
 	static const unsigned int idle_sleep_time;
 	static const unsigned int moving_sleep_time;
 	static const unsigned int moving_ctr;
@@ -72,45 +74,26 @@ class moth_gui
 	void handle_mouse_motion(SDL_MouseMotionEvent*);
 	void handle_mouse_button(SDL_MouseButtonEvent*);
 	void process_events();
-	void draw_screen();
+	void show_pages();
 	void create_textures();
+	bool check_textures();
+	void load_textures();
+	void move_page_left();
+	void move_page_right();
+	void page_moved();
+    double get_z_shift()
+    {
+        if (zoom > 1)
+            return (page_width / 4) * (1/zoom);
+        else
+            return (page_width / 4) * zoom;
+    }
 
 	void normalize_zoom() {
-		if(zoom < 0.3)
+		if (zoom < 0.3)
 			zoom = 0.3;
-		if(zoom > 3)
+		if (zoom > 3)
 			zoom = 3;
-	}
-
-	void move_page_left() {
-		if (moving_page || book->page_first())
-			return;
-		moving_page = 1;
-		dir = move_left;
-		moving_page_ctr = moving_ctr;
-		sleep_time = moving_sleep_time;
-	}
-
-	void move_page_right() {
-		if (moving_page || book->page_last())
-			return;
-		moving_page = 1;
-		dir = move_right;
-		moving_page_ctr = moving_ctr;
-		sleep_time = moving_sleep_time;
-	}
-
-	void page_moved() {
-		moving_page = 0;
-		sleep_time = idle_sleep_time;
-		if (dir == move_right) {
-			book->set_page(book->get_page() + move_by_pages);
-			move_by_pages = 2;
-		} else {
-			book->set_page(book->get_page() - move_by_pages);
-			if(book->get_page() == 0)
-				move_by_pages = 1;
-		}
 	}
 
 	moth_gui(moth_gui&);

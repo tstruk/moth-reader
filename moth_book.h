@@ -47,7 +47,7 @@ public:
 		return false;
 	}
 	bool page_last() {
-		if (current_page == reader->get_pages() - 1)
+		if (current_page == reader->get_pages())
 			return true;
 		return false;
 	}

@@ -81,7 +81,7 @@ void moth_book::set_page(unsigned int const page)
     if(nr < 0)
 	    current_page = 0;
 	else if(page >= reader->get_pages())
-		current_page = reader->get_pages() - 1;
+		current_page = reader->get_pages();
 	else
 		current_page = page;
 }

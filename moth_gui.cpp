@@ -27,15 +27,25 @@
 
 static const char *const font_file = "fonts/TSCu_Times.ttf";
 
-const unsigned int moth_gui::max_pages = 700;
+const unsigned int moth_gui::load_pages = 40;
+const unsigned int moth_gui::load_pages_at_start = 60;
 const unsigned int moth_gui::idle_sleep_time = 5000;
 const unsigned int moth_gui::moving_sleep_time = 10;
 const unsigned int moth_gui::moving_ctr = 180;
 const unsigned int moth_gui::move_ctr_by = 20;
 
+const char *text_info = "Please wait";
+const char *text_info_tab[] = {"Mapping textures %d%%",
+	                     "Mapping textures %d%% .",
+	                     "Mapping textures %d%% ..",
+	                     "Mapping textures %d%% ..."
+	                    };
+
 moth_gui::~moth_gui()
 {
 	glDeleteTextures(num_pages, textures);
+    delete [] textures;
+    delete [] textures_state;
 	delete win;
 	delete font_renderer;
 	SDL_Quit();
@@ -55,11 +65,11 @@ moth_gui::moth_gui()
 	font_renderer->Depth(1);
 	font_renderer->CharMap(ft_encoding_unicode);
 	running = 1;
-	move_by_pages = 1;
+	move_by_pages = 2;
 	moving_page = 0;
-	zoom = 1.0;
 	shift_x = 0.0;
 	shift_y = 0.0;
+	zoom = 1.0;
 	moving_page_ctr = 0;
     first_last_page_shitf = 0;
 	sleep_time = idle_sleep_time;
@@ -76,7 +86,7 @@ void moth_gui::handle_resize(SDL_ResizeEvent *resize)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	ratio = std::min((width / page_width),(height / page_height));
+	ratio = std::min((width / page_width),(height / page_height)) * 0.8;
 }
 
 void moth_gui::handle_mouse_motion(SDL_MouseMotionEvent* motion)
@@ -131,11 +141,7 @@ void moth_gui::handle_key_down(SDL_keysym *key)
 		move_page_left();
 		break;
 	case SDLK_UP:
-		shift_x += page_width * ratio * 0.1;
-		break;
 	case SDLK_DOWN:
-		shift_x -= page_width * ratio * 0.1;
-		break;
 	default:
 		break;
 	}
@@ -170,83 +176,151 @@ int moth_gui::read_book(moth_book *book)
 				break;
 			}
 		}
-		draw_screen();
+		show_pages();
 	}
 	return SUCCESS;
 }
 
-void moth_gui::create_textures()
+bool moth_gui::check_textures() {
+
+    int current_page = book->get_page();
+    int range;
+    switch (dir) {
+        case move_right:
+            range = ((num_pages - current_page) >= 4) ?
+                         4 : num_pages - current_page;
+            for(int i = 0; i < range; i++)
+                if (!textures_state[current_page + i])
+                    return true;
+              break;
+        case move_left:
+           range = (current_page >= 4) ?
+                         4 : current_page;
+            for(int i = range; i >= 0; i--)
+                if (!textures_state[current_page - i])
+                    return true;
+              break;
+    }
+    return false;
+}
+
+void moth_gui::page_moved() {
+	sleep_time = idle_sleep_time;
+	if (dir == move_right) {
+		book->set_page(book->get_page() + move_by_pages);
+	} else {
+		book->set_page(book->get_page() - move_by_pages);
+	}
+	moving_page = 0;
+	std::cout << "on page " << book->get_page() << std::endl;
+}
+
+void moth_gui::move_page_left() {
+	if (moving_page || book->page_first())
+		return;
+	dir = move_left;
+    if (book->page_last() && book->get_page() & 1)
+        book->set_page(book->get_page() - 1);
+    if (check_textures())
+        load_textures();
+	moving_page = 1;
+	moving_page_ctr = moving_ctr;
+	sleep_time = moving_sleep_time;
+}
+
+void moth_gui::move_page_right() {
+	if (moving_page || book->page_last())
+		return;
+	dir = move_right;
+    if (check_textures())
+        load_textures();
+	moving_page = 1;
+	moving_page_ctr = moving_ctr;
+	sleep_time = moving_sleep_time;
+}
+
+void moth_gui::load_textures()
 {
 	double w, h;
 	GError *error = NULL;
+	char buff[30];
+    int pages_to_load;
 	num_pages = book->get_pages();
-	book->get_page_size(0, &page_width, &page_height);
 	GdkPixbuf *pixbuff = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-	                                    true, 8, page_width * 2, page_height * 2);
-
+	                                    true, 8, page_width * 2,
+                                        page_height * 2);
 	if (!pixbuff) {
 		std::cerr << "Could not allocate buffer for texture" << std::endl;
 		throw moth_bad_gui();
 	}
+    if((num_pages - book->get_page() - (load_pages * 2)) > 0)
+        pages_to_load = load_pages;
+    else
+        pages_to_load = num_pages - book->get_page();
 
-	ratio = std::min((width / page_width),(height / page_height));
-	zoom = 0.8;
-	std::cout << "Ratio = " << ratio << std::endl;
+	for(int x = 0, i = book->get_page(), index = 0, ctr = 10 ; x < pages_to_load; x++) {
 
-	const char *str0 = "Please wait";
-	const char *str[] = {"Mapping textures %d%%",
-	                     "Mapping textures %d%% .",
-	                     "Mapping textures %d%% ..",
-	                     "Mapping textures %d%% ..."
-	                    };
-	char buff[30];
-	textures = new GLuint[num_pages];
+        if (dir == move_right) {
+            if (((book->get_page()) + x) == num_pages - 1)
+                break;
+        }
+        else {
+            if (((book->get_page()) - x) == 0)
+                break;
+        }
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glGenTextures(num_pages, textures);
-	glDisable(GL_TEXTURE_2D);
-	for(int i = 0, index = 0, ctr = 10; i < num_pages && i < max_pages; i++) {
+        if (dir == move_right)
+            i++;
+        else
+            i--;
+		std::cout << "loading textures for page " << i << " x " << x << std::endl;
 		book->get_page_size(i, &w, &h);
-
 		if (page_width != w || page_height != h) {
 			std::cerr << "Page "<< i <<" has different size " << h << "x"
 			          << w << std::endl;
 			g_object_unref(pixbuff);
 			throw moth_bad_pdf();
 		}
+	    glEnable(GL_TEXTURE_2D);
 		if (SUCCESS == book->get_page(i, pixbuff)) {
-			/* Enhance the picture */
-			gdk_pixbuf_saturate_and_pixelate(pixbuff, pixbuff, 2.0, 0);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-			glBindTexture(GL_TEXTURE_2D, textures[i]);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			/* Enhance the picture */
+			gdk_pixbuf_saturate_and_pixelate(pixbuff, pixbuff, 2.0, 0);
+			glBindTexture(GL_TEXTURE_2D, textures[i]);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, page_width * 2,
 			             page_height * 2, 0, GL_RGBA,
 			             GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
+            textures_state[i] = 1;
 		} else {
 			std::cerr << "Could not get texture for page "<< i << std::endl;
 			throw moth_bad_gui();
 		}
+        if (dir == move_right && i + 1 == num_pages && num_pages & 0x1) {
+		    std::cout << "and one more " << std::endl;
+			glBindTexture(GL_TEXTURE_2D, textures[i + 1]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, page_width * 2,
+			             page_height * 2, 0, GL_RGBA,
+			             GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
+            textures_state[i + 1] = 1;
+        }
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
+	    glDisable(GL_TEXTURE_2D);
 		glPushMatrix();
-		glTranslatef(-0.9, -0.2, -10.0);
-		glColorMaterial(GL_FRONT, GL_DIFFUSE);
-		glTranslatef(0.0, 0.0, 20.0);
-		glTranslatef(-160.0, -240.0, 0.0);
+		glTranslatef(-160.0, -240.0, 20.0);
 		glColor3f(0.3, 0.3, 1.0);
-		if (i == ctr) {
-			ctr = i + 10;
+		if (x == ctr) {
+			ctr = x + 10;
 			index = ++index % 4;
 		}
-		sprintf(buff, str[index],
-		        (int)((((double)(i+1)) / ((double)num_pages)) * 100));
+		sprintf(buff, text_info_tab[index],
+		        (int)((((double)x+1) / (double)pages_to_load) * 100));
 		font_renderer->Render(buff);
 		glTranslatef(70.0, -30.0, 0.0);
-		font_renderer->Render(str0);
+		font_renderer->Render(text_info);
 		glPopMatrix();
 		SDL_GL_SwapBuffers();
 	}
@@ -254,7 +328,93 @@ void moth_gui::create_textures()
 	g_object_unref(pixbuff);
 }
 
-void moth_gui::draw_screen()
+void moth_gui::create_textures()
+{
+	double w, h;
+	GError *error = NULL;
+	char buff[30];
+    int pages_to_alloc;
+	num_pages = book->get_pages();
+    if (num_pages & 0x1)
+        pages_to_alloc = num_pages + 1;
+    else
+        pages_to_alloc = num_pages;
+
+	std::cout << "pages to alloc " << pages_to_alloc << std::endl;
+	book->get_page_size(0, &page_width, &page_height);
+	ratio = std::min((width / page_width),(height / page_height)) * 0.8;
+	GdkPixbuf *pixbuff = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
+	                                    true, 8, page_width * 2,
+                                        page_height * 2);
+	if (!pixbuff) {
+		std::cerr << "Could not allocate buffer for texture" << std::endl;
+		throw moth_bad_gui();
+	}
+
+	textures = new GLuint[pages_to_alloc];
+	textures_state = new uint8_t[pages_to_alloc];
+    memset(textures_state, '\0', pages_to_alloc);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(num_pages, textures);
+	for(int i = 0, index = 0, ctr = 10; i < num_pages
+                         && i < load_pages_at_start; i++) {
+
+		book->get_page_size(i, &w, &h);
+		if (page_width != w || page_height != h) {
+			std::cerr << "Page "<< i <<" has different size " << h << "x"
+			          << w << std::endl;
+			g_object_unref(pixbuff);
+			throw moth_bad_pdf();
+		}
+		if (SUCCESS == book->get_page(i, pixbuff)) {
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			/* Enhance the picture */
+			gdk_pixbuf_saturate_and_pixelate(pixbuff, pixbuff, 2.0, 0);
+			glBindTexture(GL_TEXTURE_2D, textures[i]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, page_width * 2,
+			             page_height * 2, 0, GL_RGBA,
+			             GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
+            textures_state[i] = 1;
+		} else {
+			std::cerr << "Could not get texture for page " << i << std::endl;
+			throw moth_bad_gui();
+		}
+		std::cout << "creating textures for page " << i << std::endl;
+        if (i + 1 == num_pages && num_pages & 0x1) {
+		    std::cout << "and one more " << std::endl;
+			glBindTexture(GL_TEXTURE_2D, textures[i + 1]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, page_width * 2,
+			             page_height * 2, 0, GL_RGBA,
+			             GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
+            textures_state[i + 1] = 1;
+        }
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glPushMatrix();
+		glTranslatef(-160.0, -240.0, 20.0);
+		glColor3f(0.3, 0.3, 1.0);
+		if (i == ctr) {
+			ctr = i + 10;
+			index = ++index % 4;
+		}
+		sprintf(buff, text_info_tab[index],
+		        (int)((((double)(i+1)) /
+                        ((double)std::min((int)num_pages,
+                            (int)load_pages_at_start))) * 100));
+		font_renderer->Render(buff);
+		glTranslatef(70.0, -30.0, 0.0);
+		font_renderer->Render(text_info);
+		glPopMatrix();
+		SDL_GL_SwapBuffers();
+	}
+	glColor3f(1.0, 1.0, 1.0);
+	g_object_unref(pixbuff);
+}
+
+void moth_gui::show_pages()
 {
 	static const int evaluators = 200;
 	static GLfloat page_one[3][3][3] = {{0},{0},{0}};
@@ -311,9 +471,11 @@ void moth_gui::draw_screen()
 			glMapGrid2f(evaluators, 0.0, 1.0, evaluators, 0.0, 1.0);
 			glEvalMesh2(GL_FILL, 0, evaluators, 0, evaluators);
 		} else {
+            /* moving page first or last */
 			int angle;
             int x3;
 			GLfloat x1, x2;
+            /* fisrt shift the page to side */
             if (!(first_last_page_shitf >= page_width / 2)) {
                 first_last_page_shitf += 50;
             }
@@ -328,8 +490,7 @@ void moth_gui::draw_screen()
                 x3 = -first_last_page_shitf;
 				angle = moving_ctr - moving_page_ctr;
 			}
-            z_shift = 200 * zoom;
-
+            z_shift = get_z_shift();
 			page_one[0][0][0] = (-page_width * ratio * zoom) + shift_x + x3;
 			page_one[0][0][1] = (page_height * ratio * zoom) + shift_y;
 			page_one[0][0][2] = 0;
@@ -365,13 +526,14 @@ void moth_gui::draw_screen()
 			glMap2f(GL_MAP2_TEXTURE_COORD_2, 0, 1, 2, 2,
 			        0, 1, 4, 2, &texpts[0][0][0]);
 
+                /* TODO pick next texture depending on dir */
 			glBindTexture(GL_TEXTURE_2D, textures[book->get_page()]);
 			glMapGrid2f(evaluators, 0.0, 1.0, evaluators, 0.0, 1.0);
 			glEvalMesh2(GL_FILL, 0, evaluators, 0, evaluators);
 
-
             if (first_last_page_shitf >= page_width / 2)
             {
+                /* if shifted enough then start flipping page */
 			    glPushMatrix();
                 glTranslatef(shift_x, 0, 0);
 		        glRotatef(angle, 0.0, 1.0, 0.0);
@@ -410,7 +572,7 @@ void moth_gui::draw_screen()
 			    glMap2f(GL_MAP2_TEXTURE_COORD_2, 0, 1, 2, 2,
 			        0, 1, 4, 2, &texpts[0][0][0]);
 
-			    glBindTexture(GL_TEXTURE_2D, textures[book->get_page() + 1]);
+			    glBindTexture(GL_TEXTURE_2D, textures[book->get_page()]);
 			    glMapGrid2f(evaluators, 0.0, 1.0, evaluators, 0.0, 1.0);
 			    glEvalMesh2(GL_FILL, 0, evaluators, 0, evaluators);
 			    glPopMatrix();
@@ -422,7 +584,8 @@ void moth_gui::draw_screen()
 			}
 		}
 	} else {
-		z_shift = 200 * zoom;
+        /* pages other than last and first */
+        z_shift = get_z_shift();
 		page_one[0][0][0] = (-page_width * 2 * ratio * zoom) + shift_x;
 		page_one[0][0][1] = (page_height * ratio * zoom) + shift_y;
 		page_one[0][0][2] = 0;
@@ -458,12 +621,12 @@ void moth_gui::draw_screen()
 		glMap2f(GL_MAP2_TEXTURE_COORD_2, 0, 1, 2, 2,
 		        0, 1, 4, 2, &texpts[0][0][0]);
 
-		if (moving_page && dir == move_left && moving_page_ctr > 90 &&
-                (book->get_page()) >= 2) {
-		    glBindTexture(GL_TEXTURE_2D, textures[book->get_page() - 2]);
+		if (moving_page && dir == move_left && //moving_page_ctr > 10 &&
+                (book->get_page()) >= 3) {
+		    glBindTexture(GL_TEXTURE_2D, textures[book->get_page()-3]);
         }
         else {
-		    glBindTexture(GL_TEXTURE_2D, textures[book->get_page()]);
+		    glBindTexture(GL_TEXTURE_2D, textures[book->get_page()-1]);
         }
 		glMapGrid2f(evaluators, 0.0, 1.0, evaluators, 0.0, 1.0);
 		glEvalMesh2(GL_FILL, 0, evaluators, 0, evaluators);
@@ -503,12 +666,12 @@ void moth_gui::draw_screen()
 		glMap2f(GL_MAP2_TEXTURE_COORD_2, 0, 1, 2, 2,
 		        0, 1, 4, 2, &texpts[0][0][0]);
 
-		if (moving_page && dir == move_right && moving_page_ctr > 90 &&
-                (book->get_pages() - book->get_page()) >= 3) {
-		    glBindTexture(GL_TEXTURE_2D, textures[book->get_page() + 3]);
+		if (moving_page && dir == move_right && moving_page_ctr > 10 &&
+                (book->get_pages() - book->get_page()) >= 2) {
+		    glBindTexture(GL_TEXTURE_2D, textures[book->get_page() + 2]);
         }
         else {
-		    glBindTexture(GL_TEXTURE_2D, textures[book->get_page() + 1]);
+		    glBindTexture(GL_TEXTURE_2D, textures[book->get_page()]);
         }
 
 		glMapGrid2f(evaluators, 0.0, 1.0, evaluators, 0.0, 1.0);
@@ -527,6 +690,7 @@ void moth_gui::draw_screen()
 			glEnable(GL_TEXTURE_2D);
 			glPopMatrix();
 		} else {
+            /* moving pages inside the book */
 			int angle;
 			GLfloat x1, x2;
 			if(dir == move_right) {
@@ -538,7 +702,7 @@ void moth_gui::draw_screen()
 				x2 = 0;
 				angle = moving_ctr - moving_page_ctr;
 			}
-            z_shift = 200 * zoom;
+		    z_shift = get_z_shift();
 			glPushMatrix();
 			glTranslatef(shift_x, 0, 0);
 			glRotatef(angle, 0.0, 1.0, 0.0);
@@ -577,7 +741,8 @@ void moth_gui::draw_screen()
 			glMap2f(GL_MAP2_TEXTURE_COORD_2, 0, 1, 2, 2,
 			        0, 1, 4, 2, &texpts[0][0][0]);
 
-			glBindTexture(GL_TEXTURE_2D, textures[book->get_page() + 1]);
+                /* TODO pick next texture depending on dir */
+			glBindTexture(GL_TEXTURE_2D, textures[book->get_page()]);
 			glMapGrid2f(evaluators, 0.0, 1.0, evaluators, 0.0, 1.0);
 			glEvalMesh2(GL_FILL, 0, evaluators, 0, evaluators);
 			glPopMatrix();
@@ -604,7 +769,6 @@ void moth_gui::init_opengl()
 		std::cerr<< "OpenGL 2.0 or greater is required" << std::endl;
 		throw moth_bad_ogl();
 	}
-
 
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
@@ -649,8 +813,10 @@ void moth_gui::init_video()
 	bpp = info->vfmt->BitsPerPixel;
 	width = info->current_w;
 	height = info->current_h;
+	width = 800;//1920;
+	height = 600;//1080;
 	width = 1920;
-	height = 1080;
+	height =1080;
 	flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
 	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 5);
 	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 5);
