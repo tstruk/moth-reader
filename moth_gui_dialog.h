@@ -15,19 +15,36 @@
  * <http://www.gnu.org/licenses/>
  *
  *************************************************************************/
-
-
-#ifndef __MOTH_GUI_FILE_CH__
-#define __MOTH_GUI_FILE_CH__
+#ifndef __MOTH_GUI_DIALOG__
+#define __MOTH_GUI_DIALOG__
 
 #include <string>
-#include <gtkmm.h>
+extern "C"{
+#include <stdio.h>
+}
+enum moth_dialog_response {
+    MOTH_DIALOG_OK,
+    MOTH_DIALOG_CANCEL,
+    MOTH_DIALOG_YES,
+    MOTH_DIALOG_NO,
+    MOTH_DIALOG_ERROR
+};
 
-class moth_gui_file_ch
-{
-public:
-	void choose_file(std::string&, Gtk::Window&);
-	moth_gui_file_ch();
-	virtual ~moth_gui_file_ch();
+const static uint16_t len = 256;
+
+class moth_dialog {
+	FILE *stream;
+	char line[len];
+    moth_dialog_response show_dialog(std::string &cmd) throw();
+
+    public:
+        moth_dialog() throw();
+        virtual ~moth_dialog();
+
+        moth_dialog_response choose_file(std::string &type,
+                                         std::string &file) throw();
+        moth_dialog_response input(std::string &info,
+                                   std::string &input) throw();
+        moth_dialog_response info(std::string &info) throw();
 };
 #endif
