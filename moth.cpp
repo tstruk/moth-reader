@@ -17,21 +17,23 @@
  *************************************************************************/
 
 #include <iostream>
-#include <gtkmm.h>
+#include <gdkmm.h>
 #include "moth.h"
 #include "moth_gui.h"
 #include "moth_book.h"
 
 
-moth::moth(int argc, char** argv): gtk_kit(argc, argv)
+moth::moth(int argc, char** argv)
 {
 	this->argc = argc;
 	this->argv = argv;
+    gdk_init(&argc, &argv);
 }
 
 moth::~moth()
 {
 }
+
 void moth::help()
 {
 	std::cout<< "Use: " << argv[0] <<

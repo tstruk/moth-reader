@@ -11,7 +11,7 @@ env.ParseConfig('pkg-config --cflags --libs sdl || true')
 env.ParseConfig('pkg-config --cflags --libs gl || true')
 env.ParseConfig('pkg-config --cflags --libs glew || true')
 env.ParseConfig('pkg-config --cflags --libs ftgl || true')
-env.ParseConfig('pkg-config --cflags --libs gtkmm-2.4 || true')
+env.ParseConfig('pkg-config --cflags --libs gdkmm-2.4 || true')
 env.ParseConfig('pkg-config --cflags --libs poppler-glib || true')
 
 config = Configure(env);
@@ -36,9 +36,9 @@ if not config.CheckLibWithHeader( 'SDL', 'SDL.h', 'C' ):
 	print "SDL Must be installed!"
 	Exit(1)
 
-# Check if gtk-dev is there
-if not config.CheckLibWithHeader( 'gtkmm-2.4', 'gtkmm.h', 'C++' ):
-	print "libgtkmm-2.4-dev or newer must be installed!"
+# Check if gdk-dev is there
+if not config.CheckLibWithHeader( 'gdkmm-2.4', 'gdkmm.h', 'C++' ):
+	print "gdkmm-2.4 or newer must be installed!"
 	Exit(1)
 
 # Check if poppler-glib is there
@@ -54,7 +54,7 @@ env.Program(
    target = 'moth',
    source = [ 'moth.cpp',
               'moth_gui.cpp',
-              'moth_gui_file_choose.cpp',
+              'moth_gui_dialog.cpp',
               'moth_book.cpp',
               'moth_reader.cpp',
               'moth_reader_pdf.cpp' ] )

@@ -23,7 +23,8 @@
 #include <algorithm>
 #include <unistd.h>
 #include "moth_gui.h"
-#include "moth_gui_file_choose.h"
+#include "moth_gui_dialog.h"
+#include <gdk/gdkx.h>
 
 static const char *const font_file = "fonts/TSCu_Times.ttf";
 
@@ -46,16 +47,12 @@ moth_gui::~moth_gui()
 	glDeleteTextures(num_pages, textures);
     delete [] textures;
     delete [] textures_state;
-	delete win;
 	delete font_renderer;
 	SDL_Quit();
 }
 
 moth_gui::moth_gui()
 {
-	win = new Gtk::Window;
-	win->resize(1,1);
-	win->show();
 	font_renderer = new FTExtrudeFont(font_file);
 	if(!font_renderer) {
 		std::cerr << "Can not open file " << font_file << std::endl;
@@ -140,6 +137,17 @@ void moth_gui::handle_key_down(SDL_keysym *key)
 	case SDLK_LEFT:
 		move_page_left();
 		break;
+	case SDLK_g:
+        {
+            std::string nr;
+            std::string info("\"Page number\"");
+            moth_dialog dialog;
+            moth_dialog_response resp = dialog.input(info, nr);
+	        if (resp == MOTH_DIALOG_OK) {
+                goto_page(atoi(nr.c_str()));
+            }
+        }
+		break;
 	case SDLK_UP:
 	case SDLK_DOWN:
 	default:
@@ -202,6 +210,31 @@ bool moth_gui::check_textures() {
               break;
     }
     return false;
+}
+
+void moth_gui::goto_page(int number) {
+	if (moving_page)
+		return;
+	if (number < 1 || number > book->get_pages()) {
+        moth_dialog dialog;
+        std::string info("\"Bad page number\"");
+        dialog.info(info);
+        return;
+    }
+    if (book->get_page() == number - 1)
+        return;
+
+    number--;
+    if (number & 1)
+        number--;
+
+    dir = (book->get_page() > (number)) ? move_left : move_right;
+    book->set_page(number);
+    if (check_textures())
+        load_textures();
+	moving_page = 1;
+	moving_page_ctr = moving_ctr;
+	sleep_time = moving_sleep_time;
 }
 
 void moth_gui::page_moved() {
@@ -274,6 +307,8 @@ void moth_gui::load_textures()
             i++;
         else
             i--;
+        if(textures_state[i])
+            continue;
 		std::cout << "loading textures for page " << i << " x " << x << std::endl;
 		book->get_page_size(i, &w, &h);
 		if (page_width != w || page_height != h) {
@@ -787,18 +822,6 @@ void moth_gui::init_opengl()
 
 void moth_gui::init_video()
 {
-#if 0
-	/* TODO: This doesn't work */
-	{
-		char SDL_windowhack[32];
-		Glib::RefPtr<Gdk::Screen> gscreen = win->get_screen();
-		Glib::RefPtr<Gdk::Window> gwin = gscreen->get_root_window();
-		sprintf(SDL_windowhack,"SDL_WINDOWID=%ld", GDK_WINDOW_XID((gwin->gobj())));
-		std::cout << "!!! window id = " << SDL_windowhack << std::endl;
-		putenv(SDL_windowhack);
-	}
-#endif
-
 	int error = SDL_Init(SDL_INIT_VIDEO);
 	if ( error != SUCCESS ) {
 		std::cerr<< "Video initialization failed: " <<
@@ -832,20 +855,17 @@ void moth_gui::init_video()
 	}
 	SDL_WM_SetCaption("moth - " MOTH_VER_STRING, NULL);
 	init_opengl();
-};
+}
 
 void moth_gui::book_select(std::string &file)
 {
-	moth_gui_file_ch *fc = NULL;
-	try {
-		fc = new moth_gui_file_ch;
-		fc->choose_file(file, *win);
-	} catch(std::exception &e) {
-		std::cerr << e.what() << std::endl;
-	}
-	delete fc;
-	if(file.empty())
+    moth_dialog file_dialog;
+    std::string type("\"Ebooks | *.pdf *.mobi\"");
+    moth_dialog_response resp = file_dialog.choose_file(type, file);
+	if(resp != MOTH_DIALOG_OK || file.empty())
 		throw moth_bad_cancel();
-
+    int i = file.find('\n');
+    if (i != std::string::npos)
+        file.erase(i);
 }
 

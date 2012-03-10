@@ -21,7 +21,6 @@
 
 #include <iostream>
 #include <exception>
-#include <gtkmm.h>
 
 #define MOTH_VER_BIG 0
 #define MOTH_VER_SMALL 1
@@ -98,7 +97,6 @@ private:
 	std::string file;
 	int argc;
 	char **argv;
-	Gtk::Main gtk_kit;
 	void help();
 	moth(const moth&);
 	moth& operator=(const moth&);

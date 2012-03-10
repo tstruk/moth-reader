@@ -18,7 +18,6 @@
 #ifndef __MOTH_GUI__
 #define __MOTH_GUI__
 
-#include <gtkmm.h>
 #include <SDL.h>
 #include <gl.h>
 #include <FTGL/ftgl.h>
@@ -33,7 +32,6 @@ typedef enum {
 
 class moth_gui
 {
-	Gtk::Window *win;
 	SDL_Surface *screen;
 	moth_book *book;
 	FTFont *font_renderer;
@@ -78,6 +76,7 @@ class moth_gui
 	void create_textures();
 	bool check_textures();
 	void load_textures();
+    void goto_page(int number);
 	void move_page_left();
 	void move_page_right();
 	void page_moved();

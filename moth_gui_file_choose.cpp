@@ -33,7 +33,6 @@ void moth_gui_file_ch::choose_file(std::string& file, Gtk::Window &win)
 	Gtk::FileChooserDialog dialog("Please choose a file",
 	                              Gtk::FILE_CHOOSER_ACTION_OPEN);
 	dialog.set_transient_for(win);
-
 	dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
 	Gtk::FileFilter filter_pdf;
