@@ -29,8 +29,8 @@ static const char *const font_file = "fonts/TSCu_Times.ttf";
 
 const unsigned int moth_gui::load_pages = 40;
 const unsigned int moth_gui::load_pages_at_start = 60;
-const unsigned int moth_gui::idle_sleep_time = 5000;
-const unsigned int moth_gui::moving_sleep_time = 10;
+const unsigned int moth_gui::idle_sleep_time = 100000;
+const unsigned int moth_gui::moving_sleep_time = 500;
 const unsigned int moth_gui::moving_ctr = 180;
 const unsigned int moth_gui::move_ctr_by = 20;
 
@@ -258,7 +258,8 @@ void moth_gui::load_textures()
     else
         pages_to_load = num_pages - book->get_page();
 
-	for(int x = 0, i = book->get_page(), index = 0, ctr = 10 ; x < pages_to_load; x++) {
+	for(int x = 0, i = book->get_page(),
+                   index = 0, ctr = 10; x < pages_to_load; x++) {
 
         if (dir == move_right) {
             if (((book->get_page()) + x) == num_pages - 1)
