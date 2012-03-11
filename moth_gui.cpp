@@ -70,6 +70,9 @@ moth_gui::moth_gui()
 	moving_page_ctr = 0;
     first_last_page_shitf = 0;
 	sleep_time = idle_sleep_time;
+    num_pages = 0;
+    textures = NULL;
+    textures_state = NULL;
 }
 
 void moth_gui::handle_resize(SDL_ResizeEvent *resize)
@@ -314,6 +317,8 @@ void moth_gui::load_textures()
 		if (page_width != w || page_height != h) {
 			std::cerr << "Page "<< i <<" has different size " << h << "x"
 			          << w << std::endl;
+			std::cerr << "Currently documents with " <<
+                         "different page sizes are not supported" << std::endl;
 			g_object_unref(pixbuff);
 			throw moth_bad_pdf();
 		}
@@ -399,6 +404,8 @@ void moth_gui::create_textures()
 		if (page_width != w || page_height != h) {
 			std::cerr << "Page "<< i <<" has different size " << h << "x"
 			          << w << std::endl;
+			std::cerr << "Currently documents with " <<
+                         "different page sizes are not supported" << std::endl;
 			g_object_unref(pixbuff);
 			throw moth_bad_pdf();
 		}
