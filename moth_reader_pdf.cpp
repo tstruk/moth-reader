@@ -42,8 +42,6 @@ moth_reader_pdf::moth_reader_pdf(const std::string &file)
 	for(int i = 0; i < num_pages; i++) {
 		pages[i] = poppler_document_get_page(doc, i);
 	}
-	/* TODO remove debug info */
-	std::cout << "Oppened doc: there are " << num_pages << " pages in it" << std::endl;
 }
 
 moth_reader_pdf::~moth_reader_pdf()

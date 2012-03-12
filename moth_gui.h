@@ -57,6 +57,7 @@ class moth_gui
 	uint8_t *textures_state;
 	uint32_t running     : 1;
 	uint32_t moving_page : 1;
+	GLfloat page_info_ctr;
 
 	static const unsigned int load_pages;
 	static const unsigned int load_pages_at_start;
@@ -64,6 +65,8 @@ class moth_gui
 	static const unsigned int moving_sleep_time;
 	static const unsigned int moving_ctr;
 	static const unsigned int move_ctr_by;
+	static const GLfloat page_info_ctr_val;
+	static const GLfloat page_info_fade_by;
 
 	void init_opengl();
 	void handle_key_down(SDL_keysym*);
@@ -95,6 +98,16 @@ class moth_gui
 			zoom = 3;
 	}
 
+    void rm_newline(std::string& str)
+    {
+        int i = str.find('\n');
+        if (i != std::string::npos)
+            str.erase(i);
+    }
+
+    bool page_is_moving() {
+        return moving_page;
+    }
 	moth_gui(moth_gui&);
 	moth_gui& operator=(moth_gui&);
 public:
