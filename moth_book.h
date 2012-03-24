@@ -51,5 +51,9 @@ public:
 			return true;
 		return false;
 	}
+    int build_index(moth_index &index) {
+        return reader->build_index(index);
+    }
+
 };
 #endif

@@ -29,6 +29,8 @@
 #define FAIL -1
 #define SUCCESS 0
 
+#define PIPE "/tmp/.moth_pipe"
+
 class moth_exception : public std::exception
 {
 	virtual const char* what() const throw() {

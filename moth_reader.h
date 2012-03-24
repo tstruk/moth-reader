@@ -20,9 +20,13 @@
 #define __MOTH_READER__
 
 #include <string>
+#include <vector>
 extern "C" {
 #include <gdk-pixbuf/gdk-pixbuf.h>
 }
+
+#include "moth_index.h"
+
 class moth_reader
 {
 protected:
@@ -33,6 +37,6 @@ public:
 	virtual int get_pages() = 0;
 	virtual int get_page(int, GdkPixbuf*&) = 0;
 	virtual int get_page_size(int, double*, double*) = 0;
+	virtual int build_index(moth_index&) = 0;
 };
-
 #endif

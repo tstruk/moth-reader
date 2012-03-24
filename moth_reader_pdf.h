@@ -23,7 +23,6 @@
 
 extern "C" {
 #include <poppler.h>
-#include <gdk-pixbuf/gdk-pixbuf.h>
 }
 #include "moth_reader.h"
 
@@ -31,6 +30,7 @@ class moth_reader_pdf : public moth_reader
 {
 	PopplerDocument *doc;
 	PopplerPage **pages;
+    int walk_index(moth_index &index, PopplerIndexIter *iter);
 	moth_reader_pdf(moth_reader_pdf&);
 	moth_reader_pdf& operator =(moth_reader_pdf&);
 public:
@@ -39,6 +39,7 @@ public:
 	virtual int get_pages();
 	virtual int get_page(int, GdkPixbuf*&);
 	virtual int get_page_size(int page, double*, double*);
+    virtual int build_index(moth_index&);
 };
 #endif
 

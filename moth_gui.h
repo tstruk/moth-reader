@@ -24,6 +24,7 @@
 
 #include "moth.h"
 #include "moth_book.h"
+#include "moth_index.h"
 
 typedef enum {
 	move_right,
@@ -34,6 +35,7 @@ class moth_gui
 {
 	SDL_Surface *screen;
 	moth_book *book;
+	moth_index index;
 	FTFont *font_renderer;
 	uint32_t bpp;
 	uint32_t flags;
@@ -83,6 +85,14 @@ class moth_gui
 	void move_page_left();
 	void move_page_right();
 	void page_moved();
+    void print_index(moth_index *ptr);
+    void free_index(moth_index *ptr);
+    void show_index();
+    bool has_index()
+    {
+        return (NULL != index.next);
+    }
+
     double get_z_shift()
     {
         if (zoom > 1)
@@ -116,6 +126,7 @@ public:
 	int read_book(moth_book*);
 	moth_gui();
 	virtual ~moth_gui();
+    friend class moth_index_gui;
 };
 
 #endif

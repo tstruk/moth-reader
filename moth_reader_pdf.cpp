@@ -73,3 +73,71 @@ int moth_reader_pdf::get_page_size(int page, double *w, double *h)
 	return SUCCESS;
 }
 
+int moth_reader_pdf::walk_index(moth_index &index, PopplerIndexIter *iter)
+{
+    moth_index *ptr = &index;
+    do {
+        if (!iter) {
+            std::cerr << "walk index - bad iterator" << std::endl;
+            throw moth_bad_pdf();
+        }
+        PopplerAction *action = poppler_index_iter_get_action(iter);
+        PopplerActionGotoDest action_goto;
+        PopplerDest *dest;
+        moth_index *new_index;
+        switch(action->type)
+        {
+            case POPPLER_ACTION_GOTO_DEST:
+                action_goto = action->goto_dest;
+                ptr->name = action_goto.title;
+                switch(action_goto.dest->type)
+                {
+                    case POPPLER_DEST_NAMED:
+                        ptr->name = action_goto.title;
+                        dest = poppler_document_find_dest(doc, action_goto.dest->named_dest);
+                        if (dest) {
+                            ptr->page = dest->page_num;
+                            poppler_dest_free(dest);
+                        }
+                    break;
+
+                    default:
+                        std::cerr << "walk index different goto dest type" << std::endl;
+                }
+                break;
+
+            default:
+                std::cerr << "walk index different action type" << std::endl;
+        }
+        poppler_action_free(action);
+        PopplerIndexIter *child = poppler_index_iter_get_child(iter);
+        if (child) {
+            moth_index *new_child = new moth_index;
+            ptr->child = new_child;
+            walk_index(*new_child, child);
+        }
+        poppler_index_iter_free(child);
+        PopplerIndexIter *iter_copy = poppler_index_iter_copy(iter);
+        if (poppler_index_iter_next(iter_copy)) {
+            ptr->next = new moth_index;
+            ptr = ptr->next;
+        }
+        poppler_index_iter_free(iter_copy);
+    } while(poppler_index_iter_next(iter));
+    return SUCCESS;
+}
+
+int moth_reader_pdf::build_index(moth_index &index)
+{
+    int ret;
+    PopplerIndexIter *iter = poppler_index_iter_new(doc);
+    try {
+        ret = walk_index(index, iter);
+    }
+    catch (moth_bad_pdf) {
+        ret = FAIL;
+    }
+    poppler_index_iter_free(iter);
+    return ret;
+}
+

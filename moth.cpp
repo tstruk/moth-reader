@@ -22,7 +22,6 @@
 #include "moth_gui.h"
 #include "moth_book.h"
 
-
 moth::moth(int argc, char** argv)
 {
 	this->argc = argc;

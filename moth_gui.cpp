@@ -47,12 +47,33 @@ static GLfloat font_color[] = {0.0, 0.0, 1.0, 1.0};
 static GLfloat line_color[] = {0.5, 0.5, 0.5};
 static GLfloat normal_color[] = {1.0, 1.0, 1.0};
 
+void moth_gui::print_index(moth_index *ptr)
+{
+    while (ptr)
+    {
+        std::cout << " " << ptr->name.c_str() << " page " << ptr->page << std::endl;
+        if (ptr->child) {
+            std::cout << ">";
+            print_index(ptr->child);
+            std::cout << "<";
+        }
+        ptr = ptr->next;
+    }
+    std::cout << std::endl;
+}
+
+void moth_gui::free_index(moth_index *ptr)
+{
+    /*TODO*/
+}
+
 moth_gui::~moth_gui()
 {
 	glDeleteTextures(num_pages, textures);
     delete [] textures;
     delete [] textures_state;
 	delete font_renderer;
+    free_index(&index);
 	SDL_Quit();
 }
 
@@ -66,6 +87,8 @@ moth_gui::moth_gui()
 	font_renderer->FaceSize(40);
 	font_renderer->Depth(2);
 	font_renderer->CharMap(ft_encoding_unicode);
+    index.next = NULL;
+    index.child = NULL;
 	running = 1;
 	move_by_pages = 2;
 	moving_page = 0;
@@ -129,6 +152,19 @@ void moth_gui::handle_key_up(SDL_keysym *key)
 	}
 }
 
+void moth_gui::show_index()
+{
+    if (!has_index()) {
+        std::cerr << "book has no index" << std::endl;
+        return;
+    }
+    moth_index_gui *gui = new moth_index_gui;
+    int stat = gui->show(this);
+    if (stat != SUCCESS)
+        std::cerr << "index gui failed" << std::endl;
+    delete gui;
+}
+
 void moth_gui::handle_key_down(SDL_keysym *key)
 {
 	switch(key->sym) {
@@ -160,6 +196,9 @@ void moth_gui::handle_key_down(SDL_keysym *key)
             }
         }
 		break;
+	case SDLK_i:
+		show_index();
+		break;
 	case SDLK_UP:
 	case SDLK_DOWN:
 	default:
@@ -172,6 +211,8 @@ int moth_gui::read_book(moth_book *book)
 	SDL_Event event;
 	this->book = book;
 	create_textures();
+    index.name = "START";
+    book->build_index(index);
 	while(running) {
 		while(SDL_PollEvent(&event)) {
 			switch( event.type ) {
@@ -201,8 +242,8 @@ int moth_gui::read_book(moth_book *book)
 	return SUCCESS;
 }
 
-bool moth_gui::check_textures() {
-
+bool moth_gui::check_textures()
+{
     int current_page = book->get_page();
     int range;
     switch (dir) {
@@ -224,7 +265,8 @@ bool moth_gui::check_textures() {
     return false;
 }
 
-void moth_gui::goto_page(int number) {
+void moth_gui::goto_page(int number)
+{
 	if (page_is_moving())
 		return;
 	if (number < 1 || number > book->get_pages()) {
@@ -249,7 +291,8 @@ void moth_gui::goto_page(int number) {
 	sleep_time = moving_sleep_time;
 }
 
-void moth_gui::page_moved() {
+void moth_gui::page_moved()
+{
 	sleep_time = idle_sleep_time;
 	if (dir == move_right) {
 		book->set_page(book->get_page() + move_by_pages);
@@ -265,7 +308,8 @@ void moth_gui::page_moved() {
 	std::cout << "on page " << book->get_page() << std::endl;
 }
 
-void moth_gui::move_page_left() {
+void moth_gui::move_page_left()
+{
 	if (page_is_moving() || book->page_first())
 		return;
 	dir = move_left;
@@ -276,7 +320,8 @@ void moth_gui::move_page_left() {
 	sleep_time = moving_sleep_time;
 }
 
-void moth_gui::move_page_right() {
+void moth_gui::move_page_right()
+{
 	if (page_is_moving() || book->page_last())
 		return;
 	dir = move_right;
