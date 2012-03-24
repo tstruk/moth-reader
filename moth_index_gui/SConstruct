@@ -1,0 +1,28 @@
+# Scons build Script.
+
+# Setup Build Environment
+env = Environment(
+   CCFLAGS='-std=gnu++0x -ggdb -g -O0',
+   LDFLAGS='-g',
+)
+
+env.Append(CPPPATH = ['.', '..'])
+
+# External Libs
+env.ParseConfig('pkg-config --cflags --libs gtkmm-2.4 || true')
+
+config = Configure(env);
+
+# Check if gtk-dev is there
+if not config.CheckLibWithHeader( 'gtkmm-2.4', 'gtkmm.h', 'C++' ):
+	print "gtkmm-2.4 or newer must be installed!"
+	Exit(1)
+
+# Validate the configuration and assign it to env
+env = config.Finish();
+
+# Build main program
+env.Program(
+   target = 'moth_index_gtk',
+   source = [ 'moth_index_gui_main.cpp', 'moth_index_gui_win.cpp'])
+
