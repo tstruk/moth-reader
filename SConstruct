@@ -14,8 +14,6 @@ env.ParseConfig('pkg-config --cflags --libs gl || true')
 env.ParseConfig('pkg-config --cflags --libs glew || true')
 env.ParseConfig('pkg-config --cflags --libs ftgl || true')
 env.ParseConfig('pkg-config --cflags --libs gdkmm-2.4 || true')
-#env.ParseConfig('pkg-config --cflags --libs gtk+-2.0 || true')
-env.ParseConfig('pkg-config --cflags --libs gtkmm-2.4 || true')
 env.ParseConfig('pkg-config --cflags --libs poppler-glib || true')
 
 config = Configure(env);
@@ -45,15 +43,6 @@ if not config.CheckLibWithHeader( 'gdkmm-2.4', 'gdkmm.h', 'C++' ):
 	print "gdkmm-2.4 or newer must be installed!"
 	Exit(1)
 
-# Check if gtk-dev is there
-#if not config.CheckLibWithHeader( 'gtk-x11-2.0', 'gtk/gtk.h', 'C' ):
-#	print "gtkmm-2.4 or newer must be installed!"
-#	Exit(1)
-# Check if gtk-dev is there
-if not config.CheckLibWithHeader( 'gtkmm-2.4', 'gtkmm.h', 'C++' ):
-	print "gtkmm-2.4 or newer must be installed!"
-#Exit(1)
-
 # Check if poppler-glib is there
 if not config.CheckLibWithHeader( 'poppler-glib', 'poppler.h', 'C' ):
 	print "libpoppler-glib-dev Must be installed!"
@@ -63,13 +52,15 @@ if not config.CheckLibWithHeader( 'poppler-glib', 'poppler.h', 'C' ):
 env = config.Finish();
 
 # Build main program
-env.Program(
-   target = 'moth',
-   source = [ 'moth.cpp',
-              'moth_gui.cpp',
-              'moth_gui_dialog.cpp',
-              'moth_index.cpp',
-              'moth_book.cpp',
-              'moth_reader.cpp',
-              'moth_reader_pdf.cpp' ] )
+moth = env.Program(
+            target =   'moth',
+            source = [ 'moth.cpp',
+                       'moth_gui.cpp',
+                       'moth_gui_dialog.cpp',
+                       'moth_index.cpp',
+                       'moth_book.cpp',
+                       'moth_reader.cpp',
+                       'moth_reader_pdf.cpp' ] )
 
+env.Install('/usr/bin', moth)
+env.Alias('install', '/usr/bin')

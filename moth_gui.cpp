@@ -155,7 +155,9 @@ void moth_gui::handle_key_up(SDL_keysym *key)
 void moth_gui::show_index()
 {
     if (!has_index()) {
-        std::cerr << "book has no index" << std::endl;
+        std::string info("\"This book has no index\"");
+        moth_dialog dialog;
+        dialog.info(info);
         return;
     }
     moth_index_gui *gui = new moth_index_gui;
@@ -184,7 +186,7 @@ void moth_gui::handle_key_down(SDL_keysym *key)
 	case SDLK_g:
         {
             std::string nr;
-            std::string info("\"Page number\"");
+            std::string info("\"Go To Page Number:\"");
             moth_dialog dialog;
             moth_dialog_response resp = dialog.input(info, nr);
 	        if (resp == MOTH_DIALOG_OK) {
@@ -368,6 +370,9 @@ void moth_gui::load_textures()
 		std::cout << "loading textures for page " << i << " x " << x << std::endl;
 		book->get_page_size(i, &w, &h);
 		if (page_width != w || page_height != h) {
+            moth_dialog dialog;
+            std::string info("\"Wrong page format\"");
+            dialog.info(info);
 			std::cerr << "Page "<< i <<" has different size " << h << "x"
 			          << w << std::endl;
 			std::cerr << "Currently documents with " <<
@@ -459,6 +464,9 @@ void moth_gui::create_textures()
 
 		book->get_page_size(i, &w, &h);
 		if (page_width != w || page_height != h) {
+            moth_dialog dialog;
+            std::string info("\"Wrong page format\"");
+            dialog.info(info);
 			std::cerr << "Page "<< i <<" has different size " << h << "x"
 			          << w << std::endl;
 			std::cerr << "Currently documents with " <<

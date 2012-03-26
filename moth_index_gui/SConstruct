@@ -22,7 +22,12 @@ if not config.CheckLibWithHeader( 'gtkmm-2.4', 'gtkmm.h', 'C++' ):
 env = config.Finish();
 
 # Build main program
-env.Program(
-   target = 'moth_index_gtk',
-   source = [ 'moth_index_gui_main.cpp', 'moth_index_gui_win.cpp'])
+moth_index = env.Program(
+               target = 'moth_index_gtk',
+               source = [ 'moth_index_gui_main.cpp', 'moth_index_gui_win.cpp'])
+
+Command("../moth_index_gtk", "moth_index_gtk", Copy("$TARGET", "$SOURCE"))
+
+env.Install('/usr/bin', moth_index)
+env.Alias('install', '/usr/bin')
 

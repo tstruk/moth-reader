@@ -34,6 +34,7 @@ moth_dialog::~moth_dialog()
 
 moth_dialog_response moth_dialog::show_dialog(std::string &cmd) throw()
 {
+    cmd += " --title=\"moth\"";
 	stream = popen(cmd.c_str(), "r");
     if (!stream || errno == ECHILD)
         return MOTH_DIALOG_ERROR;

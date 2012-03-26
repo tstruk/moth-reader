@@ -30,7 +30,7 @@
 #include "moth_index.h"
 #include "moth_gui.h"
 
-#define INDEX_GUI "./moth_index_gui/moth_index_gtk "
+#define INDEX_GUI "moth_index_gtk "
 #define CMD INDEX_GUI PIPE
 
 int moth_index_gui::show(moth_gui *gui) throw()
@@ -45,7 +45,7 @@ int moth_index_gui::show(moth_gui *gui) throw()
     if (pipe < 0) {
         return FAIL;
     }
-    print_index(gui->index.next);
+    print_index(&gui->index);
     write(pipe, "\n", 1);
     close(pipe);
     memset(line, '\0', line_len);
