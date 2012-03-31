@@ -98,14 +98,18 @@ int moth_reader_pdf::walk_index(moth_index &index, PopplerIndexIter *iter)
                             poppler_dest_free(dest);
                         }
                     break;
+                    case POPPLER_DEST_XYZ:
+                        ptr->name = action_goto.title;
+                        ptr->page = action_goto.dest->page_num;
+                    break;
 
                     default:
-                        std::cerr << "walk index different goto dest type - %d" << action_goto.dest->type << std::endl;
+                        std::cerr << "walk index different goto dest type - " << action_goto.dest->type << std::endl;
                 }
                 break;
 
             default:
-                std::cerr << "walk index different action type - %d" << action->type << std::endl;
+                std::cerr << "walk index different action type - " << action->type << std::endl;
         }
         poppler_action_free(action);
         PopplerIndexIter *child = poppler_index_iter_get_child(iter);
