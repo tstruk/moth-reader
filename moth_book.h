@@ -39,7 +39,7 @@ public:
 		return current_page;
 	}
 	int get_page(int, GdkPixbuf *&pixbuff);
-	int get_pages();
+	unsigned int get_pages();
 	int get_page_size(int, double*, double*);
 	bool page_first() {
 		if (current_page == 0)

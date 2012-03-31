@@ -23,8 +23,8 @@
 #include <exception>
 
 #define MOTH_VER_BIG 0
-#define MOTH_VER_SMALL 1
-#define MOTH_VER_STRING "0.1"
+#define MOTH_VER_SMALL 2
+#define MOTH_VER_STRING "0.2"
 
 #define FAIL -1
 #define SUCCESS 0

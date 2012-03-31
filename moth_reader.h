@@ -30,11 +30,11 @@ extern "C" {
 class moth_reader
 {
 protected:
-	int num_pages;
+	unsigned int num_pages;
 	void get_url(const std::string &file, std::string &url);
 public:
 	moth_reader();
-	virtual int get_pages() = 0;
+	virtual unsigned int get_pages() = 0;
 	virtual int get_page(int, GdkPixbuf*&) = 0;
 	virtual int get_page_size(int, double*, double*) = 0;
 	virtual int build_index(moth_index&) = 0;

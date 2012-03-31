@@ -25,7 +25,7 @@ using namespace std;
 moth_index_gui::moth_index_gui(string file)
 	: button("Quit")
 {
-	set_title("Moth: Book Index");
+	set_title("moth " MOTH_VER_STRING " - Book Index");
 	set_border_width(5);
 	set_default_size(800, 800);
 	add(vbox);

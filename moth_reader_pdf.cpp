@@ -39,21 +39,21 @@ moth_reader_pdf::moth_reader_pdf(const std::string &file)
 		throw;
 	}
 
-	for(int i = 0; i < num_pages; i++) {
+	for(unsigned int i = 0; i < num_pages; i++) {
 		pages[i] = poppler_document_get_page(doc, i);
 	}
 }
 
 moth_reader_pdf::~moth_reader_pdf()
 {
-	for(int i = 0; i < num_pages; i++) {
+	for(unsigned int i = 0; i < num_pages; i++) {
 		g_object_unref(pages[i]);
 	}
 	g_object_unref(doc);
 	delete [] pages;
 }
 
-int moth_reader_pdf::get_pages()
+unsigned int moth_reader_pdf::get_pages()
 {
 	return num_pages;
 }
@@ -61,7 +61,6 @@ int moth_reader_pdf::get_pages()
 int moth_reader_pdf::get_page(int num, GdkPixbuf *&pixbuff)
 {
 	double w, h;
-	static cairo_surface_t *cario;
 	get_page_size(num, &w, &h);
 	poppler_page_render_to_pixbuf(pages[num], 0, 0, w, h, 2, 0, pixbuff);
 	return SUCCESS;
@@ -84,7 +83,6 @@ int moth_reader_pdf::walk_index(moth_index &index, PopplerIndexIter *iter)
         PopplerAction *action = poppler_index_iter_get_action(iter);
         PopplerActionGotoDest action_goto;
         PopplerDest *dest;
-        moth_index *new_index;
         switch(action->type)
         {
             case POPPLER_ACTION_GOTO_DEST:
@@ -102,12 +100,12 @@ int moth_reader_pdf::walk_index(moth_index &index, PopplerIndexIter *iter)
                     break;
 
                     default:
-                        std::cerr << "walk index different goto dest type" << std::endl;
+                        std::cerr << "walk index different goto dest type - %d" << action_goto.dest->type << std::endl;
                 }
                 break;
 
             default:
-                std::cerr << "walk index different action type" << std::endl;
+                std::cerr << "walk index different action type - %d" << action->type << std::endl;
         }
         poppler_action_free(action);
         PopplerIndexIter *child = poppler_index_iter_get_child(iter);

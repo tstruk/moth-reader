@@ -2,8 +2,7 @@
 
 # Setup Build Environment
 env = Environment(
-   CCFLAGS='-std=gnu++0x -ggdb -g -O0',
-   LDFLAGS='-g',
+   CCFLAGS='-std=gnu++0x -O3'
 )
 
 env.Append(CPPPATH = ['.', '..'])

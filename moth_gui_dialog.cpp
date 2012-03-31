@@ -15,10 +15,12 @@
  * <http://www.gnu.org/licenses/>
  *
  *************************************************************************/
-#include "moth_gui_dialog.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include "moth.h"
+#include "moth_gui_dialog.h"
 
 moth_dialog::moth_dialog() throw()
 {
@@ -34,7 +36,7 @@ moth_dialog::~moth_dialog()
 
 moth_dialog_response moth_dialog::show_dialog(std::string &cmd) throw()
 {
-    cmd += " --title=\"moth\"";
+    cmd += " --title=\"moth " MOTH_VER_STRING " \"";
 	stream = popen(cmd.c_str(), "r");
     if (!stream || errno == ECHILD)
         return MOTH_DIALOG_ERROR;

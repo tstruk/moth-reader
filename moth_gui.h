@@ -47,8 +47,8 @@ class moth_gui
 	double zoom;
 	double shift_x;
 	double shift_y;
-	uint32_t move_by_pages;
-	uint32_t sleep_time;
+	uint16_t move_by_pages;
+	uint16_t sleep_time;
 	uint16_t num_pages;
 	uint8_t shift_state;
 	uint8_t button_state;
@@ -81,7 +81,7 @@ class moth_gui
 	void create_textures();
 	bool check_textures();
 	void load_textures();
-    void goto_page(int number);
+    void goto_page(unsigned int number);
 	void move_page_left();
 	void move_page_right();
 	void page_moved();
@@ -110,7 +110,7 @@ class moth_gui
 
     void rm_newline(std::string& str)
     {
-        int i = str.find('\n');
+        unsigned int i = str.find('\n');
         if (i != std::string::npos)
             str.erase(i);
     }

@@ -60,7 +60,7 @@ moth_book::~moth_book()
 	delete reader;
 }
 
-int moth_book::get_pages()
+unsigned int moth_book::get_pages()
 {
 	return reader->get_pages();
 }
@@ -77,7 +77,7 @@ int moth_book::get_page_size(int number, double *w, double *h)
 
 void moth_book::set_page(unsigned int const page)
 {
-	int nr = (int) page;
+	unsigned int nr = (int) page;
     if(nr < 0)
 	    current_page = 0;
 	else if(page >= reader->get_pages())
