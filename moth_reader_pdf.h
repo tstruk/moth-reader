@@ -40,6 +40,7 @@ public:
 	virtual int get_page(int, GdkPixbuf*&);
 	virtual int get_page_size(int page, double*, double*);
     virtual int build_index(moth_index&);
+    virtual int save_copy(std::string &url);
 };
 #endif
 

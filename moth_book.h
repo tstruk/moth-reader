@@ -54,6 +54,9 @@ public:
     int build_index(moth_index &index) {
         return reader->build_index(index);
     }
+    int save_copy(std::string &file) {
+        return reader->save_copy(file);
+    }
 
 };
 #endif

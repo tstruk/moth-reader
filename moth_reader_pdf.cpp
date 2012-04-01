@@ -143,3 +143,17 @@ int moth_reader_pdf::build_index(moth_index &index)
     return ret;
 }
 
+int moth_reader_pdf::save_copy(std::string &url)
+{
+    GError *err = NULL;
+    if (poppler_document_save_a_copy(doc, url.c_str(), &err)) {
+        return SUCCESS;
+    }
+    else {
+        std::cout << "Could not save file " << err->message
+                  << " code " << err->code << std::endl;
+        g_error_free(err);
+        return FAIL;
+    }
+}
+

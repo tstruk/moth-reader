@@ -200,6 +200,22 @@ void moth_gui::handle_key_down(SDL_keysym *key)
             }
         }
 		break;
+	case SDLK_s:
+        {
+            std::string file;
+            moth_dialog dialog;
+            moth_dialog_response resp = dialog.save_file(file);
+	        if (resp == MOTH_DIALOG_OK) {
+                rm_newline(file);
+                std::string url = "file://" + file;
+                if (book->save_copy(url) != SUCCESS) {
+                    std::string err("\"Could not save file\"");
+                    dialog.error(err);
+                }
+            }
+        }
+		break;
+
 	case SDLK_i:
 		show_index();
 		break;

@@ -43,8 +43,10 @@ class moth_dialog {
 
         moth_dialog_response choose_file(std::string &type,
                                          std::string &file) throw();
+        moth_dialog_response save_file(std::string &file) throw();
         moth_dialog_response input(std::string &info,
                                    std::string &input) throw();
         moth_dialog_response info(std::string &info) throw();
+        moth_dialog_response error(std::string &error) throw();
 };
 #endif

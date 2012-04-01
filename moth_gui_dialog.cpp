@@ -67,6 +67,16 @@ moth_dialog_response moth_dialog::choose_file(std::string &type,
     return resp;
 }
 
+moth_dialog_response moth_dialog::save_file(std::string &file) throw()
+{
+    std::string cmd("zenity --file-selection --save --confirm-overwrite");
+    moth_dialog_response resp = show_dialog(cmd);
+    if (resp == MOTH_DIALOG_OK) {
+        file = line;
+    }
+    return resp;
+}
+
 moth_dialog_response moth_dialog::input(std::string &info,
         std::string &input) throw()
 {
@@ -88,6 +98,17 @@ moth_dialog_response moth_dialog::info(std::string &info) throw()
     if (info.length()) {
         cmd += " --text=";
         cmd += info;
+    }
+    moth_dialog_response resp = show_dialog(cmd);
+    return resp;
+}
+
+moth_dialog_response moth_dialog::error(std::string &error) throw()
+{
+    std::string cmd("zenity --error");
+    if (error.length()) {
+        cmd += " --text=";
+        cmd += error;
     }
     moth_dialog_response resp = show_dialog(cmd);
     return resp;

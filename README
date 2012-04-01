@@ -1,5 +1,5 @@
-
-List of dependencies.
+### MOTH READER README ###
+#List of dependencies.
 The following tools and libraries need to be installed to build moth:
 - SConstruct is used to build the software. For more info see http://www.scons.org/
 - OpenGL
@@ -11,17 +11,19 @@ The following tools and libraries need to be installed to build moth:
 - zenity
 Note: zenity is used in runtime for dialogs.
 
-Installation.
+#Installation
 SConstruct building tool is used to build moth.
 To build it do "scons"
 To install do "sudo scons install"
 
-User manuall.
-Use left and righ arrows to flip pages back and forward.
-Use mouse to move the book.
-Use shift + move mouse uo and down to zoom in and zoom out.
-Use shift + mouse wheel to zoom in and zoom out.
-Use 'g' - open "goto" dialog
-Use 'i' - open book index
+#User manuall
+Left and righ arrows to flip pages back and forward.
+Mouse to move the book.
+Shift + move mouse up and down to zoom in and zoom out.
+Shift + mouse wheel to zoom in and zoom out.
+'g' - open "goto" dialog.
+'i' - open book index.
+'s' - save a copy.
+ESC - edns the program.
 
 Note: Moth has been developed and tested on Debian 0.6 and it works with the above libs and tools that can be found in Debian stable repository.
