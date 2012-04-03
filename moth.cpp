@@ -53,7 +53,7 @@ int moth::run()
 	}
 
 	/* Get the path to an ebook */
-	if(argc < 2) {
+	if (argc < 2) {
 		try {
 			gui->book_select(file);
 		} catch(std::exception &e) {
@@ -62,6 +62,12 @@ int moth::run()
 			return FAIL;
 		}
 	} else if (argc == 2) {
+        if ((strncmp(argv[1], "-h", 2) == 0 ) ||
+                (strncmp(argv[1], "--help", 6) == 0)) {
+            help();
+			delete gui;
+			return SUCCESS;
+        }
 		file = argv[1];
 	} else {
 		help();

@@ -26,4 +26,15 @@ Shift + mouse wheel to zoom in and zoom out.
 's' - save a copy.
 ESC - edns the program.
 
+#Known bugs
+1. In multiple display system the aspect ratio is broken.
+In multiple display system the SDL_GetVideoInfo function in libSDL v1.2 reports the combined resolutions of all displays.
+This makes the aspect ratio broken as the reader opens window in the current display only.
+It may be fixed by hardcoding the resolution to the main display in moth_gui.cpp in moth_gui::init_video() function by chenging the following lines:
+ width = info->current_w;
+ height = info->current_h;
+
+In libSDL v2.0 this problem should be resolved.
+
+#Note
 Note: Moth has been developed and tested on Debian 0.6 and it works with the above libs and tools that can be found in Debian stable repository.
