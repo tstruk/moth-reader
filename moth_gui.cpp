@@ -19,6 +19,7 @@
 #include <glew.h>
 #include <gl.h>
 #include <glu.h>
+#include <gdk/gdk.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <algorithm>
 #include <unistd.h>
@@ -937,8 +938,9 @@ void moth_gui::init_opengl()
 
 void moth_gui::init_video()
 {
+	GdkScreen *gdk_screen = gdk_screen_get_default();
 	int error = SDL_Init(SDL_INIT_VIDEO);
-	if ( error != SUCCESS ) {
+	if (error != SUCCESS || NULL == gdk_screen) {
 		std::cerr<< "Video initialization failed: " <<
 		         SDL_GetError( ) << std::endl;
 		throw moth_bad_gui();
@@ -950,8 +952,8 @@ void moth_gui::init_video()
 		throw moth_bad_gui();
 	}
 	bpp = info->vfmt->BitsPerPixel;
-	width = info->current_w;
-	height = info->current_h;
+	width = gdk_screen_get_width(gdk_screen);
+	height = gdk_screen_get_height(gdk_screen);
 	flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
 	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 5);
 	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 5);
