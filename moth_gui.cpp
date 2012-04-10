@@ -945,6 +945,9 @@ void moth_gui::init_video()
 		         SDL_GetError( ) << std::endl;
 		throw moth_bad_gui();
 	}
+	int monitor = gdk_screen_get_primary_monitor(gdk_screen);
+	GdkRectangle res;
+	gdk_screen_get_monitor_geometry(gdk_screen, monitor, &res);
 	const SDL_VideoInfo *info = SDL_GetVideoInfo();
 	if (!info) {
 		std::cerr<< "Get Video info failed: " <<
@@ -952,8 +955,9 @@ void moth_gui::init_video()
 		throw moth_bad_gui();
 	}
 	bpp = info->vfmt->BitsPerPixel;
-	width = gdk_screen_get_width(gdk_screen);
-	height = gdk_screen_get_height(gdk_screen);
+	width = res.width;
+	height = res.height;
+
 	flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
 	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 5);
 	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 5);
