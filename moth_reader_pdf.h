@@ -30,7 +30,7 @@ class moth_reader_pdf : public moth_reader
 {
 	PopplerDocument *doc;
 	PopplerPage **pages;
-    int walk_index(moth_index &index, PopplerIndexIter *iter);
+	int walk_index(moth_index &index, PopplerIndexIter *iter);
 	moth_reader_pdf(moth_reader_pdf&);
 	moth_reader_pdf& operator =(moth_reader_pdf&);
 public:
@@ -39,8 +39,9 @@ public:
 	virtual unsigned int get_pages();
 	virtual int get_page(int, GdkPixbuf*&);
 	virtual int get_page_size(int page, double*, double*);
-    virtual int build_index(moth_index&);
-    virtual int save_copy(std::string &url);
+	virtual int build_index(moth_index&);
+	virtual int save_copy(std::string &url);
+	virtual int search(std::string&, int, std::vector<moth_highlight> &);
 };
 #endif
 

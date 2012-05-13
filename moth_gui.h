@@ -43,6 +43,7 @@ class moth_gui
 	double height;
 	double page_width;
 	double page_height;
+	double page_half;
 	double ratio;
 	double zoom;
 	double shift_x;
@@ -52,14 +53,16 @@ class moth_gui
 	uint16_t num_pages;
 	uint8_t shift_state;
 	uint8_t button_state;
-	uint32_t first_last_page_shitf;
+	uint32_t first_last_page_shift;
 	move_direction dir;
 	uint32_t moving_page_ctr;
 	GLuint *textures;
 	uint8_t *textures_state;
 	uint32_t running     : 1;
 	uint32_t moving_page : 1;
+	uint32_t show_search_res : 1;
 	GLfloat page_info_ctr;
+	std::vector <moth_highlight> search_results;
 
 	static const unsigned int load_pages;
 	static const unsigned int load_pages_at_start;
@@ -76,30 +79,31 @@ class moth_gui
 	void handle_resize(SDL_ResizeEvent*);
 	void handle_mouse_motion(SDL_MouseMotionEvent*);
 	void handle_mouse_button(SDL_MouseButtonEvent*);
+	void handle_goto_page();
+	void handle_save_copy();
+	void handle_find();
 	void process_events();
 	void show_pages();
 	void create_textures();
 	bool check_textures();
 	void load_textures();
-    void goto_page(unsigned int number);
+	void goto_page(unsigned int number);
 	void move_page_left();
 	void move_page_right();
 	void page_moved();
-    void print_index(moth_index *ptr);
-    void free_index(moth_index *ptr);
-    void show_index();
-    bool has_index()
-    {
-        return (NULL != index.next);
-    }
+	void print_index(moth_index *ptr);
+	void free_index(moth_index *ptr);
+	void show_index();
+	bool has_index() {
+		return (NULL != index.next);
+	}
 
-    double get_z_shift()
-    {
-        if (zoom > 1)
-            return (page_width / 4) * (1/zoom);
-        else
-            return (page_width / 4) * zoom;
-    }
+	double get_z_shift() {
+		if (zoom > 1)
+			return (page_width / 4) * (1/zoom);
+		else
+			return (page_width / 4) * zoom;
+	}
 
 	void normalize_zoom() {
 		if (zoom < 0.3)
@@ -108,16 +112,32 @@ class moth_gui
 			zoom = 3;
 	}
 
-    void rm_newline(std::string& str)
-    {
-        unsigned int i = str.find('\n');
-        if (i != std::string::npos)
-            str.erase(i);
-    }
+	void rm_newline(std::string& str) {
+		unsigned int i = str.find('\n');
+		if (i != std::string::npos)
+			str.erase(i);
+	}
+	bool page_is_moving() {
+		return moving_page;
+	}
+	void inline translate_pdf_to_page_coordinate(double pdf_c_x,
+												 double &page_c_x,
+												 double pdf_c_y,
+												 double &page_c_y,
+												 bool page_one) {
+		if (pdf_c_y > page_half)
+			page_c_y = pdf_c_y;
+		else if (pdf_c_y < page_half)
+			page_c_y = pdf_c_y - page_height;
+		else
+			page_c_y = 0;
 
-    bool page_is_moving() {
-        return moving_page;
-    }
+		if (page_one)
+			page_c_x = -pdf_c_x;
+		else
+			page_c_x = pdf_c_x;
+		return;
+	}
 	moth_gui(moth_gui&);
 	moth_gui& operator=(moth_gui&);
 public:
@@ -126,7 +146,7 @@ public:
 	int read_book(moth_book*);
 	moth_gui();
 	virtual ~moth_gui();
-    friend class moth_index_gui;
+	friend class moth_index_gui;
 };
 
 #endif

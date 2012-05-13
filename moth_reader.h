@@ -27,6 +27,14 @@ extern "C" {
 
 #include "moth_index.h"
 
+struct moth_highlight
+{
+	double x1;
+	double y1;
+	double x2;
+	double y2;
+};
+
 class moth_reader
 {
 protected:
@@ -38,6 +46,7 @@ public:
 	virtual int get_page(int, GdkPixbuf*&) = 0;
 	virtual int get_page_size(int, double*, double*) = 0;
 	virtual int build_index(moth_index&) = 0;
-	virtual int save_copy(std::string &url) = 0;
+	virtual int save_copy(std::string&) = 0;
+	virtual int search(std::string&, int, std::vector <moth_highlight>&) = 0;
 };
 #endif

@@ -51,12 +51,15 @@ public:
 			return true;
 		return false;
 	}
-    int build_index(moth_index &index) {
-        return reader->build_index(index);
-    }
-    int save_copy(std::string &file) {
-        return reader->save_copy(file);
-    }
-
+	int build_index(moth_index &index) {
+		return reader->build_index(index);
+	}
+	int save_copy(std::string &file) {
+		return reader->save_copy(file);
+	}
+	int search(std::string& text, int page,
+			std::vector <moth_highlight>& results) {
+		return reader->search(text, page, results);
+	}
 };
 #endif

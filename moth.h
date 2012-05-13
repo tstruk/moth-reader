@@ -93,16 +93,21 @@ enum moth_format_type {
 	moth_format_not_supported
 };
 
+enum moth_search_dir {
+	moth_search_forward,
+	moth_search_backward
+};
+
 class moth
 {
-private:
+	private:
 	std::string file;
 	int argc;
 	char **argv;
 	void help();
 	moth(const moth&);
 	moth& operator=(const moth&);
-public:
+	public:
 	moth(int, char**);
 	~moth();
 	int run();
