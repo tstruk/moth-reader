@@ -42,6 +42,7 @@ void moth_reader::get_url(const std::string &path,
 	int up_ctr = 0;
 	int loop;
 	const char *new_path = path.c_str();
+	/* Count dirs up in relative path */
 	do {
 		loop = strncmp(new_path, dir_up, 3);
 		if(loop == 0) {
@@ -49,10 +50,11 @@ void moth_reader::get_url(const std::string &path,
 			new_path += 3;
 		}
 	} while(loop == 0);
+
 	if(0 == up_ctr) {
 		if((strncmp(new_path, current_dir, 2) != 0) &&
-		    (path.find(slash) != std::string::npos))
-			pwd = (char*)"";
+		    (path[0] == slash))
+			pwd = "";
 	}
 	while(new_path && up_ctr) {
 		char *p = rindex(pwd, slash);
