@@ -54,7 +54,7 @@ void moth_reader::get_url(const std::string &path,
 	if(0 == up_ctr) {
 		if((strncmp(new_path, current_dir, 2) != 0) &&
 		    (path[0] == slash))
-			pwd = "";
+			pwd = (char*) "";
 	}
 	while(new_path && up_ctr) {
 		char *p = rindex(pwd, slash);
