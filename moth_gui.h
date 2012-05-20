@@ -48,8 +48,8 @@ class moth_gui
 	double zoom;
 	double shift_x;
 	double shift_y;
+	uint32_t sleep_time;
 	uint16_t move_by_pages;
-	uint16_t sleep_time;
 	uint16_t num_pages;
 	uint8_t shift_state;
 	uint8_t button_state;
