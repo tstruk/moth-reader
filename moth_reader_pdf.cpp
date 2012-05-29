@@ -169,7 +169,7 @@ int moth_reader_pdf::search(std::string& str, int page,
 	int i = 0;
 	do {
 		PopplerRectangle *rec = static_cast<PopplerRectangle*>(list->data);
-		moth_highlight h = {rec->x1, rec->y1, rec->x2, rec->y2};
+		moth_highlight h = {page, rec->x1, rec->y1, rec->x2, rec->y2};
 		result.push_back(h);
 		list = g_list_nth(list, ++i);
 	} while(list);

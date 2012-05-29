@@ -43,7 +43,6 @@ class moth_gui
 	double height;
 	double page_width;
 	double page_height;
-	double page_half;
 	double ratio;
 	double zoom;
 	double shift_x;
@@ -99,10 +98,11 @@ class moth_gui
 	}
 
 	double get_z_shift() {
+		return 0;
 		if (zoom > 1)
-			return (page_width / 4) * (1/zoom);
+			return (page_width / 10) * (1/zoom);
 		else
-			return (page_width / 4) * zoom;
+			return (page_width / 10) * zoom;
 	}
 
 	void normalize_zoom() {
@@ -120,24 +120,6 @@ class moth_gui
 	bool page_is_moving() {
 		return moving_page;
 	}
-	void inline translate_pdf_to_page_coordinate(double pdf_c_x,
-												 double &page_c_x,
-												 double pdf_c_y,
-												 double &page_c_y,
-												 bool page_one) {
-		if (pdf_c_y > page_half)
-			page_c_y = pdf_c_y;
-		else if (pdf_c_y < page_half)
-			page_c_y = pdf_c_y - page_height;
-		else
-			page_c_y = 0;
-
-		if (page_one)
-			page_c_x = -pdf_c_x;
-		else
-			page_c_x = pdf_c_x;
-		return;
-	}
 	moth_gui(moth_gui&);
 	moth_gui& operator=(moth_gui&);
 public:
@@ -148,7 +130,6 @@ public:
 	virtual ~moth_gui();
 	friend class moth_index_gui;
 };
-
 #endif
 
 

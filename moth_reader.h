@@ -29,6 +29,7 @@ extern "C" {
 
 struct moth_highlight
 {
+	unsigned int page;
 	double x1;
 	double y1;
 	double x2;
