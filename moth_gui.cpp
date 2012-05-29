@@ -85,6 +85,9 @@ moth_gui::moth_gui()
 {
 	font_renderer = new FTExtrudeFont(font_file);
 	if(!font_renderer) {
+		moth_dialog dialog;
+		std::string info("\"Can't open font file.\"");
+		dialog.info(info);
 		std::cerr << "Can not open file " << font_file << std::endl;
 		throw moth_bad_font();
 	}
@@ -106,8 +109,9 @@ moth_gui::moth_gui()
 	num_pages = 0;
 	textures = NULL;
 	textures_state = NULL;
-	page_width = 1;
-	page_height = 1;
+	shift_state = SDL_RELEASED;
+	button_state = SDL_RELEASED;
+	page_split = 0.6;
 }
 
 void moth_gui::handle_resize(SDL_ResizeEvent *resize)
@@ -121,18 +125,25 @@ void moth_gui::handle_resize(SDL_ResizeEvent *resize)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(0.0, 0.0, width / 2.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	ratio = 1;
+	if (page_height >= page_width) {
+		best_zoom = (height / page_height) * 0.8;
+	}
+	else {
+		best_zoom = (width / (page_width * 2)) * 0.8;
+	}
+	zoom = best_zoom;
 }
 
 void moth_gui::handle_mouse_motion(SDL_MouseMotionEvent* motion)
 {
-	if(button_state == SDL_PRESSED) {
+	if (button_state == SDL_PRESSED) {
 		shift_x += motion->xrel;
 		shift_y -= motion->yrel;
 	} else {
-		if(shift_state == SDL_PRESSED) {
+		if (shift_state == SDL_PRESSED) {
 			zoom += motion->yrel * 0.001;
 			normalize_zoom();
+			stop_show_search_res();
 		}
 	}
 }
@@ -140,12 +151,16 @@ void moth_gui::handle_mouse_motion(SDL_MouseMotionEvent* motion)
 void moth_gui::handle_mouse_button(SDL_MouseButtonEvent* button)
 {
 	button_state = button->state;
-	if(button->button == SDL_BUTTON_WHEELDOWN)
-		if(shift_state == SDL_PRESSED)
+	if (button->button == SDL_BUTTON_WHEELDOWN)
+		if (shift_state == SDL_PRESSED) {
 			zoom -= zoom * 0.03;
-	if(button->button == SDL_BUTTON_WHEELUP)
-		if(shift_state == SDL_PRESSED)
+			stop_show_search_res();
+		}
+	if (button->button == SDL_BUTTON_WHEELUP)
+		if (shift_state == SDL_PRESSED) {
 			zoom += zoom * 0.03;
+			stop_show_search_res();
+		}
 	normalize_zoom();
 }
 
@@ -163,6 +178,7 @@ void moth_gui::handle_key_up(SDL_keysym *key)
 
 void moth_gui::show_index()
 {
+	stop_show_search_res();
 	if (!has_index()) {
 		std::string info("\"This book has no index\"");
 		moth_dialog dialog;
@@ -183,6 +199,7 @@ void moth_gui::handle_goto_page()
 	moth_dialog dialog;
 	moth_dialog_response resp = dialog.input(info, nr);
 	if (resp == MOTH_DIALOG_OK) {
+		stop_show_search_res();
 		rm_newline(nr);
 		if (nr.compare("last") == 0)
 			goto_page(book->get_pages() - 1);
@@ -222,7 +239,7 @@ void moth_gui::handle_find()
 			book->search(text, i, search_results);
 			if (!search_results.empty()) {
 				found = 1;
-				show_search_res = 1;
+				start_show_search_res();
 				goto_page(i);
 				break;
 			}
@@ -376,6 +393,7 @@ void moth_gui::page_moved()
 
 void moth_gui::move_page_left()
 {
+	stop_show_search_res();
 	if (page_is_moving() || book->page_first())
 		return;
 	dir = move_left;
@@ -388,6 +406,7 @@ void moth_gui::move_page_left()
 
 void moth_gui::move_page_right()
 {
+	stop_show_search_res();
 	if (page_is_moving() || book->page_last())
 		return;
 	dir = move_right;
@@ -505,7 +524,6 @@ void moth_gui::create_textures()
 		pages_to_alloc = num_pages;
 
 	book->get_page_size(0, &page_width, &page_height);
-	ratio = 1;
 	textures = new GLuint[pages_to_alloc];
 	textures_state = new uint8_t[pages_to_alloc];
 	memset(textures_state, '\0', pages_to_alloc);
@@ -513,6 +531,13 @@ void moth_gui::create_textures()
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glGenTextures(num_pages, textures);
 	dir = move_right;
+	if (page_height >= page_width) {
+		best_zoom = (height / page_height) * 0.8;
+	}
+	else {
+		best_zoom = (width / (page_width * 2)) * 0.8;
+	}
+	zoom = best_zoom;
 	load_textures();
 	return;
 }
@@ -536,34 +561,34 @@ void moth_gui::show_pages()
 	if (book->page_first() || book->page_last()) {
 		if (!page_is_moving()) {
 			z_shift = 0;
-			page_one[0][0][0] = (-page_width * ratio * zoom) + shift_x;
-			page_one[0][0][1] = (page_height * ratio * zoom) + shift_y;
+			page_one[0][0][0] = (-page_width * zoom) + shift_x;
+			page_one[0][0][1] = (page_height * zoom) + shift_y;
 			page_one[0][0][2] = 0;
 			page_one[0][1][0] = shift_x;
-			page_one[0][1][1] = (page_height * ratio * zoom) + shift_y;
+			page_one[0][1][1] = (page_height * zoom) + shift_y;
 			page_one[0][1][2] = z_shift;
-			page_one[0][2][0] = (page_width * ratio * zoom) + shift_x;
-			page_one[0][2][1] = (page_height * ratio * zoom) + shift_y;
+			page_one[0][2][0] = (page_width * zoom) + shift_x;
+			page_one[0][2][1] = (page_height * zoom) + shift_y;
 			page_one[0][2][2] = 0;
 
-			page_one[1][0][0] = (-page_width * ratio * zoom) + shift_x;
+			page_one[1][0][0] = (-page_width * zoom) + shift_x;
 			page_one[1][0][1] = shift_y;
 			page_one[1][0][2] = 0;
 			page_one[1][1][0] = shift_x;
 			page_one[1][1][1] = shift_y;
 			page_one[1][1][2] = z_shift;
-			page_one[1][2][0] = (page_width * ratio * zoom) + shift_x;
+			page_one[1][2][0] = (page_width * zoom) + shift_x;
 			page_one[1][2][1] = shift_y;
 			page_one[1][2][2] = 0;
 
-			page_one[2][0][0] = (-page_width * ratio * zoom) + shift_x;
-			page_one[2][0][1] = (-page_height * ratio * zoom) + shift_y;
+			page_one[2][0][0] = (-page_width * zoom) + shift_x;
+			page_one[2][0][1] = (-page_height * zoom) + shift_y;
 			page_one[2][0][2] = 0;
 			page_one[2][1][0] = shift_x;
-			page_one[2][1][1] = (-page_height * ratio * zoom) + shift_y;
+			page_one[2][1][1] = (-page_height * zoom) + shift_y;
 			page_one[2][1][2] = z_shift;
-			page_one[2][2][0] = (page_width * ratio * zoom) + shift_x;
-			page_one[2][2][1] = (-page_height * ratio * zoom) + shift_y;
+			page_one[2][2][0] = (page_width * zoom) + shift_x;
+			page_one[2][2][1] = (-page_height * zoom) + shift_y;
 			page_one[2][2][2] = 0;
 
 			glMap2f(GL_MAP2_VERTEX_3, 0, 1, 3, 3,
@@ -589,44 +614,44 @@ void moth_gui::show_pages()
 			}
 			if (book->page_first()) {
 				x1 = 0;
-				x2 = (page_width * 1.5 *  ratio * zoom);
+				x2 = (page_width * 1.5 * zoom);
 				x3 = first_last_page_shift;
 				angle = -(moving_ctr - moving_page_ctr);
 			} else {
-				x1 = (-page_width * 1.5 * ratio * zoom);
+				x1 = (-page_width * 1.5 * zoom);
 				x2 = 0;
 				x3 = -first_last_page_shift;
 				angle = moving_ctr - moving_page_ctr;
 			}
 			z_shift = get_z_shift();
-			page_one[0][0][0] = (-page_width * ratio * zoom) + shift_x + x3;
-			page_one[0][0][1] = (page_height * ratio * zoom) + shift_y;
+			page_one[0][0][0] = (-page_width * zoom) + shift_x + x3;
+			page_one[0][0][1] = (page_height * zoom) + shift_y;
 			page_one[0][0][2] = 0;
 			page_one[0][1][0] = shift_x + x3;
-			page_one[0][1][1] = (page_height * ratio * zoom) + shift_y;
+			page_one[0][1][1] = (page_height * zoom) + shift_y;
 			page_one[0][1][2] = z_shift;
-			page_one[0][2][0] = (page_width * ratio * zoom) + shift_x + x3;
-			page_one[0][2][1] = (page_height * ratio * zoom) + shift_y;
+			page_one[0][2][0] = (page_width * zoom) + shift_x + x3;
+			page_one[0][2][1] = (page_height * zoom) + shift_y;
 			page_one[0][2][2] = 0;
 
-			page_one[1][0][0] = (-page_width * ratio * zoom) + shift_x + x3;
+			page_one[1][0][0] = (-page_width * zoom) + shift_x + x3;
 			page_one[1][0][1] = shift_y;
 			page_one[1][0][2] = 0;
 			page_one[1][1][0] = shift_x + x3;
 			page_one[1][1][1] = shift_y;
 			page_one[1][1][2] = z_shift;
-			page_one[1][2][0] = (page_width * ratio * zoom) + shift_x + x3;
+			page_one[1][2][0] = (page_width * zoom) + shift_x + x3;
 			page_one[1][2][1] = shift_y;
 			page_one[1][2][2] = 0;
 
-			page_one[2][0][0] = (-page_width * ratio * zoom) + shift_x + x3;
-			page_one[2][0][1] = (-page_height * ratio * zoom) + shift_y;
+			page_one[2][0][0] = (-page_width * zoom) + shift_x + x3;
+			page_one[2][0][1] = (-page_height * zoom) + shift_y;
 			page_one[2][0][2] = 0;
 			page_one[2][1][0] = shift_x + x3;
-			page_one[2][1][1] = (-page_height * ratio * zoom) + shift_y;
+			page_one[2][1][1] = (-page_height * zoom) + shift_y;
 			page_one[2][1][2] = z_shift;
-			page_one[2][2][0] = (page_width * ratio * zoom) + shift_x + x3;
-			page_one[2][2][1] = (-page_height * ratio * zoom) + shift_y;
+			page_one[2][2][0] = (page_width * zoom) + shift_x + x3;
+			page_one[2][2][1] = (-page_height * zoom) + shift_y;
 			page_one[2][2][2] = 0;
 
 			glMap2f(GL_MAP2_VERTEX_3, 0, 1, 3, 3,
@@ -650,13 +675,13 @@ void moth_gui::show_pages()
 				glTranslatef(shift_x, 0, 0);
 				glRotatef(angle, 0.0, 1.0, 0.0);
 				page_moving[0][0][0] = x1;
-				page_moving[0][0][1] = (page_height * ratio * zoom) + shift_y;
+				page_moving[0][0][1] = (page_height * zoom) + shift_y;
 				page_moving[0][0][2] = 0;
 				page_moving[0][1][0] = x1 * 0.5;
-				page_moving[0][1][1] = (page_height * ratio * zoom) + shift_y;
+				page_moving[0][1][1] = (page_height * zoom) + shift_y;
 				page_moving[0][1][2] = z_shift;
 				page_moving[0][2][0] = x2;
-				page_moving[0][2][1] = (page_height * ratio * zoom) + shift_y;
+				page_moving[0][2][1] = (page_height * zoom) + shift_y;
 				page_moving[0][2][2] = 0;
 
 				page_moving[1][0][0] = x1;
@@ -670,13 +695,13 @@ void moth_gui::show_pages()
 				page_moving[1][2][2] = 0;
 
 				page_moving[2][0][0] = x1;
-				page_moving[2][0][1] = (-page_height * ratio * zoom) + shift_y;
+				page_moving[2][0][1] = (-page_height * zoom) + shift_y;
 				page_moving[2][0][2] = 0;
 				page_moving[2][1][0] = x1 * 0.5;
-				page_moving[2][1][1] = (-page_height * ratio * zoom) + shift_y;
+				page_moving[2][1][1] = (-page_height * zoom) + shift_y;
 				page_moving[2][1][2] = z_shift;
 				page_moving[2][2][0] = x2;
-				page_moving[2][2][1] = (-page_height * ratio * zoom) + shift_y;
+				page_moving[2][2][1] = (-page_height * zoom) + shift_y;
 				page_moving[2][2][2] = 0;
 
 				glMap2f(GL_MAP2_VERTEX_3, 0, 1, 3, 3,
@@ -702,37 +727,34 @@ void moth_gui::show_pages()
 	} else {
 		/* pages other than last and first */
 		z_shift = get_z_shift();
-		page_one[0][0][0] = (-page_width * 2 * ratio * zoom) + shift_x;
-		page_one[0][0][1] = (page_height * ratio * zoom) + shift_y;
+		page_one[0][0][0] = (-page_width * 2 * zoom) + shift_x;
+		page_one[0][0][1] = (page_height * zoom) + shift_y;
 		page_one[0][0][2] = 0;
-		//page_one[0][1][0] = ((-page_width * 2 * ratio * zoom) + shift_x) * 0.5;
-		page_one[0][1][0] = ((-page_width * ratio * zoom) + shift_x);
-		page_one[0][1][1] = (page_height * ratio * zoom) + shift_y;
+		page_one[0][1][0] = (-page_width * page_split * zoom) + shift_x;
+		page_one[0][1][1] = (page_height * zoom) + shift_y;
 		page_one[0][1][2] = z_shift;
 		page_one[0][2][0] = shift_x;
-		page_one[0][2][1] = (page_height * ratio * zoom) + shift_y;
+		page_one[0][2][1] = (page_height * zoom) + shift_y;
 		page_one[0][2][2] = 0;
 
-		page_one[1][0][0] = (-page_width * 2 * ratio * zoom) + shift_x;
+		page_one[1][0][0] = (-page_width * 2 * zoom) + shift_x;
 		page_one[1][0][1] = shift_y;
 		page_one[1][0][2] = 0;
-//		page_one[1][1][0] = ((-page_width * 2 * ratio * zoom) + shift_x) * 0.5;
-		page_one[1][1][0] = ((-page_width * ratio * zoom) + shift_x);
+		page_one[1][1][0] = (-page_width * page_split * zoom) + shift_x;
 		page_one[1][1][1] = shift_y;
 		page_one[1][1][2] = z_shift;
 		page_one[1][2][0] = shift_x;
 		page_one[1][2][1] = shift_y;
 		page_one[1][2][2] = 0;
 
-		page_one[2][0][0] = (-page_width * 2 * ratio * zoom) + shift_x;
-		page_one[2][0][1] = (-page_height * ratio * zoom) + shift_y;
+		page_one[2][0][0] = (-page_width * 2 * zoom) + shift_x;
+		page_one[2][0][1] = (-page_height * zoom) + shift_y;
 		page_one[2][0][2] = 0;
-//		page_one[2][1][0] = ((-page_width * 2 * ratio * zoom) + shift_x) * 0.5;
-		page_one[2][1][0] = ((-page_width * ratio * zoom) + shift_x);
-		page_one[2][1][1] = (-page_height * ratio * zoom) + shift_y;
+		page_one[2][1][0] = (-page_width * page_split * zoom) + shift_x;
+		page_one[2][1][1] = (-page_height * zoom) + shift_y;
 		page_one[2][1][2] = z_shift;
 		page_one[2][2][0] = shift_x;
-		page_one[2][2][1] = (-page_height * ratio * zoom) + shift_y;
+		page_one[2][2][1] = (-page_height * zoom) + shift_y;
 		page_one[2][2][2] = 0;
 
 		glMap2f(GL_MAP2_VERTEX_3, 0, 1, 3, 3,
@@ -755,33 +777,33 @@ void moth_gui::show_pages()
 		#endif
 
 		page_two[0][0][0] = shift_x;
-		page_two[0][0][1] = (page_height * ratio * zoom) + shift_y;
+		page_two[0][0][1] = (page_height * zoom) + shift_y;
 		page_two[0][0][2] = 0;
-		page_two[0][1][0] = ((page_width * ratio * zoom) + shift_x);
-		page_two[0][1][1] = (page_height * ratio * zoom) + shift_y;
+		page_two[0][1][0] = (page_width * page_split * zoom) + shift_x;
+		page_two[0][1][1] = (page_height * zoom) + shift_y;
 		page_two[0][1][2] = z_shift;
-		page_two[0][2][0] = (page_width * 2 * ratio * zoom) + shift_x;
-		page_two[0][2][1] = (page_height * ratio * zoom) + shift_y;
+		page_two[0][2][0] = (page_width * 2 * zoom) + shift_x;
+		page_two[0][2][1] = (page_height * zoom) + shift_y;
 		page_two[0][2][2] = 0;
 
 		page_two[1][0][0] = shift_x;
 		page_two[1][0][1] = shift_y;
 		page_two[1][0][2] = 0;
-		page_two[1][1][0] = ((page_width * ratio * zoom) + shift_x);
+		page_two[1][1][0] = (page_width * page_split * zoom) + shift_x;
 		page_two[1][1][1] = shift_y;
 		page_two[1][1][2] = z_shift;
-		page_two[1][2][0] = (page_width * 2 * ratio * zoom) + shift_x;
+		page_two[1][2][0] = (page_width * 2 * zoom) + shift_x;
 		page_two[1][2][1] = shift_y;
 		page_two[1][2][2] = 0;
 
 		page_two[2][0][0] = shift_x;
-		page_two[2][0][1] = (-page_height * ratio * zoom) + shift_y;
+		page_two[2][0][1] = (-page_height * zoom) + shift_y;
 		page_two[2][0][2] = 0;
-		page_two[2][1][0] = ((page_width * ratio * zoom) + shift_x);
-		page_two[2][1][1] = (-page_height * ratio * zoom) + shift_y;
+		page_two[2][1][0] = (page_width * page_split * zoom) + shift_x;
+		page_two[2][1][1] = (-page_height * zoom) + shift_y;
 		page_two[2][1][2] = z_shift;
-		page_two[2][2][0] = (page_width * 2 * ratio * zoom) + shift_x;
-		page_two[2][2][1] = (-page_height * ratio * zoom) + shift_y;
+		page_two[2][2][0] = (page_width * 2 * zoom) + shift_x;
+		page_two[2][2][1] = (-page_height * zoom) + shift_y;
 		page_two[2][2][2] = 0;
 
 		glMap2f(GL_MAP2_VERTEX_3, 0, 1, 3, 3,
@@ -810,10 +832,11 @@ void moth_gui::show_pages()
 			glColor3fv(line_color);
 			glTranslatef(0.0, 0.0, 1.0);
 			glBegin(GL_LINES);
-			glVertex2d(0 + shift_x, (page_height * ratio * zoom) + shift_y);
-			glVertex2d(0 + shift_x, (-page_height * ratio * zoom) + shift_y);
+			glVertex2d(0 + shift_x, (page_height * zoom) + shift_y);
+			glVertex2d(0 + shift_x, (-page_height * zoom) + shift_y);
 			glEnd();
 			if (show_search_res) {
+				/* Highlight all search results */
 				std::vector<moth_highlight>::iterator itr;
 				glColor3fv(hightlight_color);
 				glPushMatrix();
@@ -825,10 +848,10 @@ void moth_gui::show_pages()
 				for(; itr != search_results.end(); ++itr)
 				{
 					glBegin(GL_LINE_LOOP);
-					glVertex2d(((*itr).x1 * 2) + shift_x, ((*itr).y1 * 2) + shift_y);
-					glVertex2d(((*itr).x2 * 2) + shift_x, ((*itr).y1 * 2) + shift_y);
-					glVertex2d(((*itr).x2 * 2) + shift_x, ((*itr).y2 * 2) + shift_y);
-					glVertex2d(((*itr).x1 * 2) + shift_x, ((*itr).y2 * 2) + shift_y);
+					glVertex2d(((*itr).x1 * zoom) + shift_x, ((*itr).y1 * zoom) + shift_y);
+					glVertex2d(((*itr).x2 * zoom) + shift_x, ((*itr).y1 * zoom) + shift_y);
+					glVertex2d(((*itr).x2 * zoom) + shift_x, ((*itr).y2 * zoom) + shift_y);
+					glVertex2d(((*itr).x1 * zoom) + shift_x, ((*itr).y2 * zoom) + shift_y);
 					glEnd();
 				}
 				glPopMatrix();
@@ -842,10 +865,10 @@ void moth_gui::show_pages()
 			GLfloat x1, x2;
 			if(dir == move_right) {
 				x1 = 0;
-				x2 = (page_width * 1.5 *  ratio * zoom);
+				x2 = (page_width * 1.5 * zoom);
 				angle = -(moving_ctr - moving_page_ctr);
 			} else {
-				x1 = (-page_width * 1.5 * ratio * zoom);
+				x1 = (-page_width * 1.5 * zoom);
 				x2 = 0;
 				angle = moving_ctr - moving_page_ctr;
 			}
@@ -854,33 +877,33 @@ void moth_gui::show_pages()
 			glTranslatef(shift_x, 0, 0);
 			glRotatef(angle, 0.0, 1.0, 0.0);
 			page_moving[0][0][0] = x1;
-			page_moving[0][0][1] = (page_height * ratio * zoom) + shift_y;
+			page_moving[0][0][1] = (page_height * zoom) + shift_y;
 			page_moving[0][0][2] = 0;
 			page_moving[0][1][0] = x1 * 0.5;
-			page_moving[0][1][1] = (page_height * ratio * zoom) + shift_y;
+			page_moving[0][1][1] = (page_height * zoom) + shift_y;
 			page_moving[0][1][2] = z_shift;
 			page_moving[0][2][0] = x2;
-			page_moving[0][2][1] = (page_height * ratio * zoom) + shift_y;
+			page_moving[0][2][1] = (page_height * zoom) + shift_y;
 			page_moving[0][2][2] = 0;
 
 			page_moving[1][0][0] = x1;
-			page_moving[1][0][1] = ((page_height * ratio * zoom) + shift_y) * 0.5;
+			page_moving[1][0][1] = ((page_height * zoom) + shift_y) * 0.5;
 			page_moving[1][0][2] = 0;
 			page_moving[1][1][0] = x1 * 0.5;
-			page_moving[1][1][1] = ((page_height * ratio * zoom) + shift_y) * 0.5;
+			page_moving[1][1][1] = ((page_height * zoom) + shift_y) * 0.5;
 			page_moving[1][1][2] = z_shift;
 			page_moving[1][2][0] = x2;
-			page_moving[1][2][1] = ((page_height * ratio * zoom) + shift_y) * 0.5;
+			page_moving[1][2][1] = ((page_height * zoom) + shift_y) * 0.5;
 			page_moving[1][2][2] = 0;
 
 			page_moving[2][0][0] = x1;
-			page_moving[2][0][1] = (-page_height * ratio * zoom) + shift_y;
+			page_moving[2][0][1] = (-page_height * zoom) + shift_y;
 			page_moving[2][0][2] = 0;
 			page_moving[2][1][0] = x1 * 0.5;
-			page_moving[2][1][1] = (-page_height * ratio * zoom) + shift_y;
+			page_moving[2][1][1] = (-page_height * zoom) + shift_y;
 			page_moving[2][1][2] = z_shift;
 			page_moving[2][2][0] = x2;
-			page_moving[2][2][1] = (-page_height * ratio * zoom) + shift_y;
+			page_moving[2][2][1] = (-page_height * zoom) + shift_y;
 			page_moving[2][2][2] = 0;
 
 			glMap2f(GL_MAP2_VERTEX_3, 0, 1, 3, 3,

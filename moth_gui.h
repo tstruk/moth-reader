@@ -43,8 +43,9 @@ class moth_gui
 	double height;
 	double page_width;
 	double page_height;
-	double ratio;
 	double zoom;
+	double best_zoom;
+	double page_split;
 	double shift_x;
 	double shift_y;
 	uint32_t sleep_time;
@@ -97,12 +98,27 @@ class moth_gui
 		return (NULL != index.next);
 	}
 
+	void start_show_search_res() {
+		show_search_res = 1;
+		zoom = 1;
+		shift_x = 0;
+		shift_y = 0;
+		page_split = 1;
+	}
+
+	void stop_show_search_res() {
+		show_search_res = 0;
+		zoom = best_zoom;
+		page_split = 0.6;
+	}
+
 	double get_z_shift() {
-		return 0;
+		if (show_search_res)
+			return 0;
 		if (zoom > 1)
-			return (page_width / 10) * (1/zoom);
+			return (page_width * 0.2) * (1 / zoom);
 		else
-			return (page_width / 10) * zoom;
+			return (page_width * 0.2) * zoom;
 	}
 
 	void normalize_zoom() {
