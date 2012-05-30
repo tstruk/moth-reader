@@ -30,8 +30,9 @@ moth_format_type moth_book::get_type()
 	moth_format_type type = moth_format_pdf;
 	for(int i = 0; i < moth_format_not_supported; i++) {
 		type = static_cast <moth_format_type>(i);
-		if(std::string::npos != file_name.find(formats[i],
-		                                       file_name.length() - strlen(formats[i]))) {
+		if(std::string::npos !=
+				file_name.find(formats[i],
+					file_name.length() - strlen(formats[i]))) {
 			return type;
 		}
 	}

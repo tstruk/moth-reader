@@ -23,6 +23,7 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <algorithm>
 #include <unistd.h>
+#include <cstdlib>
 #include "moth_gui.h"
 #include "moth_gui_dialog.h"
 
@@ -223,6 +224,7 @@ void moth_gui::handle_save_copy()
 	}
 }
 
+/* TODO store searching text and find again (n - next, p - prev)*/
 void moth_gui::handle_find()
 {
 	std::string text;
@@ -359,17 +361,19 @@ void moth_gui::goto_page(unsigned int number)
 		dialog.info(info);
 		return;
 	}
-	if (book->get_page() == number - 1)
+	if (book->get_page() == (number & (int)(~0x1)))
 		return;
 
-	number--;
 	if (number & 1)
 		number--;
 
 	dir = (book->get_page() > (number)) ? move_left : move_right;
+	int page_before = book->get_page();
 	book->set_page(number);
 	if (check_textures())
 		load_textures();
+	book->set_page(page_before);
+	move_by_pages = abs(number - page_before);
 	moving_page = 1;
 	moving_page_ctr = moving_ctr;
 	sleep_time = moving_sleep_time;
@@ -386,6 +390,7 @@ void moth_gui::page_moved()
 		else
 			book->set_page(book->get_page() - move_by_pages);
 	}
+	move_by_pages = 2;
 	moving_page = 0;
 	page_info_ctr = page_info_ctr_val;
 	font_color[3] = 1;
@@ -948,7 +953,6 @@ void moth_gui::show_pages()
 		page_info_ctr -= page_info_fade_by;
 		font_renderer->FaceSize(40);
 	}
-
 	SDL_GL_SwapBuffers();
 	usleep(sleep_time);
 }

@@ -24,6 +24,7 @@ Shift + mouse wheel to zoom in and zoom out.
 'g' - open "goto" dialog.
 'i' - open book index.
 's' - save a copy.
+'f' - find string.
 ESC - edns the program.
 
 #Note
