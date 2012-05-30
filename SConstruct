@@ -2,8 +2,8 @@
 
 # Setup Build Environment
 env = Environment(
-#   CCFLAGS='-std=gnu++0x -g -O0 -Wall',
-   CCFLAGS='-std=gnu++0x -O3 -Wall',
+   CCFLAGS='-std=gnu++0x -g -O0 -Wall',
+#   CCFLAGS='-std=gnu++0x -O3 -Wall',
 )
 
 SConscript(['moth_index_gui/SConstruct'])

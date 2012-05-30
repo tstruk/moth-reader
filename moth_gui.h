@@ -108,7 +108,6 @@ class moth_gui
 
 	void stop_show_search_res() {
 		show_search_res = 0;
-		zoom = best_zoom;
 		page_split = 0.6;
 	}
 
