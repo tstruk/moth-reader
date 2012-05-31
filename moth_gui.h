@@ -62,6 +62,7 @@ class moth_gui
 	uint32_t moving_page : 1;
 	uint32_t show_search_res : 1;
 	GLfloat page_info_ctr;
+	std::string search_string;
 	std::vector <moth_highlight> search_results;
 
 	static const unsigned int load_pages;
@@ -82,6 +83,8 @@ class moth_gui
 	void handle_goto_page();
 	void handle_save_copy();
 	void handle_find();
+	void handle_find_next();
+	void handle_find_prev();
 	void process_events();
 	void show_pages();
 	void create_textures();
@@ -132,9 +135,11 @@ class moth_gui
 		if (i != std::string::npos)
 			str.erase(i);
 	}
+
 	bool page_is_moving() {
 		return moving_page;
 	}
+
 	moth_gui(moth_gui&);
 	moth_gui& operator=(moth_gui&);
 public:

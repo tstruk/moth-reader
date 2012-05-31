@@ -33,7 +33,7 @@ moth_reader_pdf::moth_reader_pdf(const std::string &file)
 	num_pages = poppler_document_get_n_pages(doc);
 
 	try {
-		pages = new PopplerPage* [num_pages];
+		pages = new PopplerPage*[num_pages];
 	} catch(std::exception &e) {
 		std::cerr << e.what() << std::endl;
 		throw;
@@ -163,9 +163,13 @@ int moth_reader_pdf::save_copy(std::string &url)
 int moth_reader_pdf::search(std::string& str, int page,
 							std::vector<moth_highlight> &result)
 {
-	GList *list = poppler_page_find_text(pages[page], str.c_str());
-	if(!list)
+
+	PopplerPage *p = poppler_document_get_page(doc, page);
+	GList *list = poppler_page_find_text(p, str.c_str());
+	g_object_unref(p);
+	if(!list) {
 		return FAIL;
+	}
 	int i = 0;
 	do {
 		PopplerRectangle *rec = static_cast<PopplerRectangle*>(list->data);

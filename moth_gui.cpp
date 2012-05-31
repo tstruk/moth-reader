@@ -224,21 +224,22 @@ void moth_gui::handle_save_copy()
 	}
 }
 
-/* TODO store searching text and find again (n - next, p - prev)*/
 void moth_gui::handle_find()
 {
-	std::string text;
 	std::string info("\"Find:\"");
 	moth_dialog dialog;
-	moth_dialog_response resp = dialog.input(info, text);
+	search_string.clear();
+	moth_dialog_response resp = dialog.input(info, search_string);
 	if (resp == MOTH_DIALOG_OK) {
 		unsigned int i;
 		char found = 0;
-		rm_newline(text);
+		rm_newline(search_string);
+		if (search_string.empty())
+			return;
 		search_results.clear();
 		for(i = book->get_page(); i < book->get_pages(); i++)
 		{
-			book->search(text, i, search_results);
+			book->search(search_string, i, search_results);
 			if (!search_results.empty()) {
 				found = 1;
 				start_show_search_res();
@@ -249,6 +250,59 @@ void moth_gui::handle_find()
 		if (!found) {
 			info = "\"Text not found.\"";
 			dialog.info(info);
+			stop_show_search_res();
+		}
+	}
+}
+
+void moth_gui::handle_find_next()
+{
+	std::string info;
+	moth_dialog dialog;
+	if (!search_string.empty()) {
+		char found = 0;
+		unsigned int i = search_results.data()->page + 1;
+		search_results.clear();
+		for(; i < book->get_pages(); i++)
+		{
+			book->search(search_string, i, search_results);
+			if (!search_results.empty()) {
+				found = 1;
+				start_show_search_res();
+				goto_page(i+1);
+				break;
+			}
+		}
+		if (!found) {
+			info = "\"Text not found.\"";
+			dialog.info(info);
+			stop_show_search_res();
+		}
+	}
+}
+
+void moth_gui::handle_find_prev()
+{
+	std::string info;
+	moth_dialog dialog;
+	if (!search_string.empty()) {
+		char found = 0;
+		unsigned int i = search_results.data()->page - 1;
+		search_results.clear();
+		for(; i > 0; i--)
+		{
+			book->search(search_string, i, search_results);
+			if (!search_results.empty()) {
+				found = 1;
+				start_show_search_res();
+				goto_page(i+1);
+				break;
+			}
+		}
+		if (!found) {
+			info = "\"Text not found.\"";
+			dialog.info(info);
+			stop_show_search_res();
 		}
 	}
 }
@@ -277,6 +331,12 @@ void moth_gui::handle_key_down(SDL_keysym *key)
 		break;
 	case SDLK_f:
 		handle_find();
+		break;
+	case SDLK_n:
+		handle_find_next();
+		break;
+	case SDLK_p:
+		handle_find_prev();
 		break;
 	case SDLK_i:
 		show_index();
@@ -364,7 +424,7 @@ void moth_gui::goto_page(unsigned int number)
 	if (book->get_page() == (number & (int)(~0x1)))
 		return;
 
-	if (number & 1)
+	if (number & 0x1)
 		number--;
 
 	dir = (book->get_page() > (number)) ? move_left : move_right;
@@ -613,7 +673,7 @@ void moth_gui::show_pages()
 			int angle;
 			int x3;
 			GLfloat x1, x2;
-			/* fisrt shift the page to side */
+			/* first shift the page to the side */
 			if (!(first_last_page_shift >= page_width / 2)) {
 				first_last_page_shift += 50;
 			}
@@ -850,6 +910,7 @@ void moth_gui::show_pages()
 				if ((*itr).page & 1) {
 					glTranslatef(-page_width * 2, 0.0, 0.0);
 				}
+				glLineWidth(1.5);
 				for(; itr != search_results.end(); ++itr)
 				{
 					glBegin(GL_LINE_LOOP);
@@ -859,6 +920,7 @@ void moth_gui::show_pages()
 					glVertex2d(((*itr).x1 * zoom) + shift_x, ((*itr).y2 * zoom) + shift_y);
 					glEnd();
 				}
+				glLineWidth(1.0);
 				glPopMatrix();
 			}
 			glColor3fv(normal_color);
@@ -868,7 +930,7 @@ void moth_gui::show_pages()
 			/* moving pages inside the book */
 			int angle;
 			GLfloat x1, x2;
-			if(dir == move_right) {
+			if (dir == move_right) {
 				x1 = 0;
 				x2 = (page_width * 1.5 * zoom);
 				angle = -(moving_ctr - moving_page_ctr);

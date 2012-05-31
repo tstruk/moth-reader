@@ -16,8 +16,8 @@ SConstruct building tool is used to build moth.
 To build it do "scons"
 To install do "sudo scons install"
 
-#User manuall
-Left and righ arrows to flip pages back and forward.
+#User manual
+Left and right arrows to flip pages back and forward.
 Mouse to move the book.
 Shift + move mouse up and down to zoom in and zoom out.
 Shift + mouse wheel to zoom in and zoom out.
@@ -25,7 +25,10 @@ Shift + mouse wheel to zoom in and zoom out.
 'i' - open book index.
 's' - save a copy.
 'f' - find string.
-ESC - edns the program.
+After you enter string to find:
+'n' - find the next occurrence of the string entered during last 'f' operation.
+'p' - find the previous occurrence of the string entered during last 'f' operation.
+ESC - ends the program.
 
 #Note
 Note: Moth has been developed and tested on Debian 0.6 and it works with the above libs and tools that can be found in Debian stable repository.
