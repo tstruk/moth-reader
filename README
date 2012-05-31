@@ -31,4 +31,4 @@ After you enter string to find:
 ESC - ends the program.
 
 #Note
-Note: Moth has been developed and tested on Debian 0.6 and it works with the above libs and tools that can be found in Debian stable repository.
+Note: Moth has been developed and tested on Debian 6.0 and it works with the above libs and tools that can be found in Debian stable repository.
