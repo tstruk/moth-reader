@@ -1,0 +1,34 @@
+#!/bin/sh
+if [ $# -eq 0 ]
+then
+echo "give release number"
+exit 1
+fi
+
+echo "release $1"
+echo "Did you change string version in the code???"
+read hymm
+
+if [ $hymm != "yes" ]
+then
+echo "then change it..."
+exit 1
+fi
+
+echo "good..."
+
+rm -rf ../moth-$1
+rm -f ../moth-$1.tar.gz
+mkdir ../moth-$1
+mkdir ../moth-$1/moth_index_gui
+
+cp *.cpp ../moth-$1/
+cp *.h ../moth-$1/
+cp SConstruct ../moth-$1/
+cp README ../moth-$1/
+cp moth_index_gui/*.cpp ../moth-$1/moth_index_gui/
+cp moth_index_gui/*.h ../moth-$1/moth_index_gui/
+cp moth_index_gui/SConstruct ../moth-$1/moth_index_gui/
+cd ../
+tar -zcvf moth-$1.tar.gz moth-$1
+
