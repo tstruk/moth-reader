@@ -76,6 +76,7 @@ moth_gui::~moth_gui()
 {
 	glDeleteTextures(num_pages, textures);
 	glDeleteTextures(1, &moth_texture);
+	glDeleteTextures(1, &last_page_texture);
 	delete [] textures;
 	delete [] textures_state;
 	delete font_renderer;
@@ -500,7 +501,7 @@ void moth_gui::load_textures()
                                                      (guint8*)img_data,
                                                      FALSE, &err);
 	if (!moth_img) {
-		std::cerr << "Could not create moth texture err " << err->code << std::endl;
+		std::cerr << "Could not create texture, err " << err->code << std::endl;
 		std::cerr << "Err msg " << err->message << std::endl;
 		g_object_unref(pixbuff);
 		throw moth_bad_gui();
@@ -615,6 +616,16 @@ void moth_gui::load_textures()
 
 void moth_gui::create_textures()
 {
+	GError *err = NULL;
+	GdkPixbuf *img = gdk_pixbuf_new_from_inline(420 * 300 * 4 + 1,
+                                                (guint8*)last_page_img,
+                                                FALSE, &err);
+	if (!img) {
+		std::cerr << "Could not create texture, err " << err->code << std::endl;
+		std::cerr << "Err msg " << err->message << std::endl;
+		throw moth_bad_gui();
+	}
+
 	num_pages = book->get_pages();
 	book->get_page_size(0, &page_width, &page_height);
 	textures = new GLuint[num_pages];
@@ -623,7 +634,18 @@ void moth_gui::create_textures()
 	memset(textures, '\0', num_pages * sizeof(GLuint));
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glGenTextures(1, &moth_texture);
+	glGenTextures(1, &last_page_texture);
 	glGenTextures(num_pages, textures);
+
+	glBindTexture(GL_TEXTURE_2D, last_page_texture);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 300, 420, 0, GL_RGBA,
+				 GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(img));
+	g_object_unref(img);
 	dir = move_right;
 	if (page_height >= page_width) {
 		best_zoom = (height / page_height) * 0.8;
@@ -692,10 +714,15 @@ void moth_gui::show_pages()
 					0, 1, 9, 3, &page_one[0][0][0]);
 			glMap2f(GL_MAP2_TEXTURE_COORD_2, 0, 1, 2, 2,
 					0, 1, 4, 2, &texpts[0][0][0]);
-			if (book->page_first())
+			if (book->page_first()) {
 				glBindTexture(GL_TEXTURE_2D, textures[book->get_page()]);
-			else
-				glBindTexture(GL_TEXTURE_2D, textures[book->get_page()-1]);
+			}
+			else {
+				if (num_pages & 1)
+					glBindTexture(GL_TEXTURE_2D, last_page_texture);
+				else
+					glBindTexture(GL_TEXTURE_2D, textures[book->get_page()-1]);
+			}
 			glMapGrid2f(evaluators, 0.0, 1.0, evaluators, 0.0, 1.0);
 			#ifdef PAGE_LAYOUT_DEBUG
 			glEvalMesh2(GL_LINE, 0, evaluators, 0, evaluators);
@@ -1051,7 +1078,7 @@ void moth_gui::show_pages()
 		}
 	}
 	if (!page_is_moving() && page_info_ctr > 0) {
-		int p = book->get_pages() + 1;
+		int p = book->get_pages();
 		if (book->page_first())
 			sprintf(buf, page_info, 1, p);
 		else if (book->page_last())

@@ -114,6 +114,7 @@ class moth
 	int run();
 };
 
-extern const char* img_data;
+extern const char *img_data;
+extern const char *last_page_img;
 #endif
 

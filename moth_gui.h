@@ -59,6 +59,7 @@ class moth_gui
 	uint32_t moving_page_ctr;
 	GLuint *textures;
 	GLuint moth_texture;
+	GLuint last_page_texture;
 	uint8_t *textures_state;
 	uint32_t running     : 1;
 	uint32_t moving_page : 1;
