@@ -51,12 +51,14 @@ class moth_gui
 	uint32_t sleep_time;
 	uint16_t move_by_pages;
 	uint16_t num_pages;
+	uint8_t pages_to_load;
 	uint8_t shift_state;
 	uint8_t button_state;
 	uint32_t first_last_page_shift;
 	move_direction dir;
 	uint32_t moving_page_ctr;
 	GLuint *textures;
+	GLuint moth_texture;
 	uint8_t *textures_state;
 	uint32_t running     : 1;
 	uint32_t moving_page : 1;

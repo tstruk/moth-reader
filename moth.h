@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <exception>
+#include <glib.h>
 
 #define MOTH_VER_BIG 0
 #define MOTH_VER_SMALL 3
@@ -112,5 +113,7 @@ class moth
 	~moth();
 	int run();
 };
+
+extern const char* img_data;
 #endif
 

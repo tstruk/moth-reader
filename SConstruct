@@ -55,6 +55,7 @@ env = config.Finish();
 moth = env.Program(
             target =   'moth',
             source = [ 'moth.cpp',
+                       'moth_image.cpp',
                        'moth_gui.cpp',
                        'moth_gui_dialog.cpp',
                        'moth_index.cpp',
