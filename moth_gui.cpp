@@ -578,7 +578,7 @@ void moth_gui::load_textures()
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, page_width * 2,
 						 page_height * 2, 0, GL_RGBA,
 						 GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff_resized));
-				g_object_unref(pixbuff);
+				g_object_unref(pixbuff_resized);
 				g_object_unref(pixbuff_diffrent_size);
 				textures_state[i] = 1;
 			} else {
