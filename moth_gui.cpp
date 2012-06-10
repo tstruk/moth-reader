@@ -489,7 +489,9 @@ void moth_gui::load_textures()
 	double w, h;
 	char buff[30];
 	GError *err = NULL;
-
+	bool scale = false;
+	GdkPixbuf *pixbuff_diffrent_size;
+	GdkPixbuf *pixbuff_resized;
 	GdkPixbuf *pixbuff = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
 										true, 8, page_width * 2,
 										page_height * 2);
@@ -540,34 +542,63 @@ void moth_gui::load_textures()
 		/* Support only ebooks with all pages of the same size  */
 		book->get_page_size(i, &w, &h);
 		if (page_width != w || page_height != h) {
-			moth_dialog dialog;
-			std::string info("\"Wrong page format\"");
-			dialog.info(info);
-			std::cerr << "Page "<< i <<" has different size " << h << "x"
-					  << w << std::endl;
-			std::cerr << "Currently documents with " <<
-						 "different page sizes are not supported" << std::endl;
-			g_object_unref(pixbuff);
-			g_object_unref(moth_img);
-			throw moth_bad_pdf();
-		}
-		if (SUCCESS == book->get_page(i, pixbuff)) {
-			/* Enhance the picture */
-			glBindTexture(GL_TEXTURE_2D, textures[i]);
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, page_width * 2,
-						 page_height * 2, 0, GL_RGBA,
-						 GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
-			textures_state[i] = 1;
+			/* Need to scale */
+			scale = true;
+			pixbuff_diffrent_size = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
+										true, 8, w * 2, h * 2);
+			if (!pixbuff_diffrent_size) {
+				std::cerr << "Could not create texture" << std::endl;
+				g_object_unref(pixbuff);
+				g_object_unref(moth_img);
+				throw moth_bad_gui();
+			}
 		} else {
-			std::cerr << "Could not get texture for page "<< i << std::endl;
-			g_object_unref(pixbuff);
-			g_object_unref(moth_img);
-			throw moth_bad_gui();
+			scale = false;
+		}
+
+		glBindTexture(GL_TEXTURE_2D, textures[i]);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		if (scale) {
+
+			if (SUCCESS == book->get_page(i, pixbuff_diffrent_size)) {
+				pixbuff_resized = gdk_pixbuf_scale_simple(pixbuff_diffrent_size,
+					                page_width * 2, page_height * 2,
+									GDK_INTERP_BILINEAR);
+				if (!pixbuff_resized) {
+					std::cerr << "Could not resize texture" << std::endl;
+					g_object_unref(pixbuff);
+					g_object_unref(pixbuff_diffrent_size);
+					g_object_unref(moth_img);
+					throw moth_bad_gui();
+				}
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, page_width * 2,
+						 page_height * 2, 0, GL_RGBA,
+						 GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff_resized));
+				g_object_unref(pixbuff);
+				g_object_unref(pixbuff_diffrent_size);
+				textures_state[i] = 1;
+			} else {
+				std::cerr << "Could not get texture for page "<< i << std::endl;
+				g_object_unref(pixbuff);
+				g_object_unref(moth_img);
+				throw moth_bad_gui();
+			}
+		} else {
+			if (SUCCESS == book->get_page(i, pixbuff)) {
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, page_width * 2,
+							 page_height * 2, 0, GL_RGBA,
+							 GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
+				textures_state[i] = 1;
+			} else {
+				std::cerr << "Could not get texture for page "<< i << std::endl;
+				g_object_unref(pixbuff);
+				g_object_unref(moth_img);
+				throw moth_bad_gui();
+			}
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_TEXTURE_2D);
