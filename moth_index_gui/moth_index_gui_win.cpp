@@ -123,6 +123,7 @@ void moth_index_gui::on_button_quit()
 {
 	hide();
 }
+
 bool moth_index_gui::on_focus_out_event(GdkEventFocus* event)
 {
 	hide();

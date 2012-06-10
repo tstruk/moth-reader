@@ -100,6 +100,7 @@ int moth_reader_pdf::walk_index(moth_index &index, PopplerIndexIter *iter)
 						}
 					break;
 					case POPPLER_DEST_XYZ:
+					case POPPLER_DEST_FIT:
 						ptr->name = action_goto.title;
 						ptr->page = action_goto.dest->page_num;
 					break;
