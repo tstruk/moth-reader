@@ -31,8 +31,10 @@ public:
 	virtual ~moth_index_gui();
 
 protected:
+	bool on_focus_out_event(GdkEventFocus *event);
 	void on_button_quit();
-	void on_treeview_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
+	void on_row_clicked(const Gtk::TreeModel::Path& path,
+						Gtk::TreeViewColumn* column);
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord
 	{
 	public:

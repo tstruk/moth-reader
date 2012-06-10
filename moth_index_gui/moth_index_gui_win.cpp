@@ -17,6 +17,7 @@
  *************************************************************************/
 
 #include "moth_index_gui_win.h"
+#include <gdk/gdk.h>
 #include <moth.h>
 #include <cstdlib>
 
@@ -109,7 +110,8 @@ moth_index_gui::moth_index_gui(string file)
 	tree_view.append_column("", columns.link);
 	tree_view.append_column("", columns.page_nr);
 	tree_view.signal_row_activated().connect(
-            sigc::mem_fun(*this, &moth_index_gui::on_treeview_row_activated));
+            sigc::mem_fun(*this, &moth_index_gui::on_row_clicked));
+	this->add_events(Gdk::FOCUS_CHANGE_MASK);
 	show_all_children();
 }
 
@@ -121,8 +123,13 @@ void moth_index_gui::on_button_quit()
 {
 	hide();
 }
+bool moth_index_gui::on_focus_out_event(GdkEventFocus* event)
+{
+	hide();
+	return false;
+}
 
-void moth_index_gui::on_treeview_row_activated(const Gtk::TreeModel::Path& path,
+void moth_index_gui::on_row_clicked(const Gtk::TreeModel::Path& path,
                 Gtk::TreeViewColumn* column)
 {
 	Gtk::TreeModel::iterator iter = tree_model->get_iter(path);
