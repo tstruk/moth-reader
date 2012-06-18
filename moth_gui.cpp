@@ -26,12 +26,9 @@
 #include <cstdlib>
 #include "moth_gui.h"
 #include "moth_gui_dialog.h"
+#include "moth_fonts.h"
 
 /* #define PAGE_LAYOUT_DEBUG 1 */
-
-static const char *const font_file =
-		"/usr/share/fonts/truetype/freefont/FreeSansOblique.ttf";
-
 const unsigned int moth_gui::load_pages = 40;
 const unsigned int moth_gui::load_pages_at_start = 61;
 const unsigned int moth_gui::idle_sleep_time = 100000;
@@ -86,17 +83,9 @@ moth_gui::~moth_gui()
 
 moth_gui::moth_gui()
 {
-	font_renderer = new FTExtrudeFont(font_file);
-	if(!font_renderer) {
-		moth_dialog dialog;
-		std::string info("\"Can't open font file.\"");
-		dialog.info(info);
-		std::cerr << "Can not open file " << font_file << std::endl;
-		throw moth_bad_font();
-	}
-	font_renderer->FaceSize(40);
-	font_renderer->Depth(2);
-	font_renderer->CharMap(ft_encoding_unicode);
+	font_renderer = new moth_fonts();
+	font_renderer->set_size(72);
+	font_renderer->set_depth(3);
 	index.next = NULL;
 	index.child = NULL;
 	running = 1;
@@ -528,6 +517,8 @@ void moth_gui::load_textures()
 			i = (dir == move_right) ? i - 2 : i + 2;
 		}
 	}
+	double num_page_info = (num_pages > pages_to_load) ?
+		                                pages_to_load : num_pages;
 
 	for(unsigned int x = 0, str_index = 0, ctr = 10; x < pages_to_load; x++) {
 		/* Check if the texture for this page is already loaded */
@@ -600,6 +591,7 @@ void moth_gui::load_textures()
 				throw moth_bad_gui();
 			}
 		}
+		/* show splash screen */
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, moth_texture);
@@ -624,13 +616,15 @@ void moth_gui::load_textures()
 			++str_index;
 			str_index = str_index % 4;
 		}
+		/* show text info */
 		glColor3fv(font_color);
 		sprintf(buff, text_info_tab[str_index],
-				(int)((((double)x+1) / (double)pages_to_load) * 100));
+				(int)((((double)x+1) / num_page_info) * 100));
 		glDisable(GL_TEXTURE_2D);
-		font_renderer->Render(buff);
-		glTranslatef(100.0, -60.0, 0.0);
-		font_renderer->Render(text_info);
+		glScaled(0.7, 0.7, 1);
+		font_renderer->render(buff);
+		glTranslatef(150.0, -100.0, 0.0);
+		font_renderer->render(text_info);
 		glEnable(GL_TEXTURE_2D);
 		glPopMatrix();
 		SDL_GL_SwapBuffers();
@@ -1120,20 +1114,19 @@ void moth_gui::show_pages()
 		if (page_info_ctr < 1)
 			font_color[3] = page_info_ctr;
 
-		font_renderer->FaceSize(30);
 		glDisable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glPushMatrix();
 		glTranslatef(-120, height - 230, 100.0);
 		glColor4fv(font_color);
-		font_renderer->Render(buf);
+		glScaled(0.7, 0.7, 1);
+		font_renderer->render(buf);
 		glPopMatrix();
 		glColor3fv(normal_color);
 		glDisable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
 		page_info_ctr -= page_info_fade_by;
-		font_renderer->FaceSize(40);
 	}
 	SDL_GL_SwapBuffers();
 	usleep(sleep_time);
@@ -1147,7 +1140,7 @@ void moth_gui::init_opengl()
 				 << std::endl;
 		throw moth_bad_ogl();
 	}
-	/* For texture sizes different than 2^m + 2b need opengl 2.0 or higher*/
+	/* For texture sizes different than 2^m + 2b need opengl 2.0 or higher */
 	if(!GLEW_VERSION_2_0) {
 		std::cerr<< "OpenGL 2.0 or greater is required" << std::endl;
 		throw moth_bad_ogl();

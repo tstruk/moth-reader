@@ -40,7 +40,7 @@ if not config.CheckLibWithHeader( 'SDL', 'SDL.h', 'C' ):
 
 # Check if gdk-dev is there
 if not config.CheckLibWithHeader( 'gdkmm-2.4', 'gdkmm.h', 'C++' ):
-	print "gdkmm-2.4 or newer must be installed!"
+	print "gdkmm-2.4 Must be installed!"
 	Exit(1)
 
 # Check if poppler-glib is there
@@ -60,6 +60,7 @@ moth = env.Program(
                        'moth_gui_dialog.cpp',
                        'moth_index.cpp',
                        'moth_book.cpp',
+                       'moth_fonts.cpp',
                        'moth_reader.cpp',
                        'moth_reader_pdf.cpp' ] )
 

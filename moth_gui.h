@@ -20,11 +20,10 @@
 
 #include <SDL.h>
 #include <gl.h>
-#include <FTGL/ftgl.h>
-
 #include "moth.h"
 #include "moth_book.h"
 #include "moth_index.h"
+#include "moth_fonts.h"
 
 typedef enum {
 	move_right,
@@ -36,7 +35,7 @@ class moth_gui
 	SDL_Surface *screen;
 	moth_book *book;
 	moth_index index;
-	FTFont *font_renderer;
+	moth_fonts *font_renderer;
 	uint32_t bpp;
 	uint32_t flags;
 	double width;

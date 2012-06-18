@@ -116,5 +116,6 @@ class moth
 
 extern const char *img_data;
 extern const char *last_page_img;
+extern const char *moth_icon;
 #endif
 
