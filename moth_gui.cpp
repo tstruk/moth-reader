@@ -143,17 +143,28 @@ void moth_gui::handle_mouse_motion(SDL_MouseMotionEvent* motion)
 void moth_gui::handle_mouse_button(SDL_MouseButtonEvent* button)
 {
 	button_state = button->state;
-	if (button->button == SDL_BUTTON_WHEELDOWN)
-		if (shift_state == SDL_PRESSED) {
-			zoom -= zoom * 0.03;
-			stop_show_search_res();
+	if (shift_state == SDL_PRESSED) {
+		if (button->button == SDL_BUTTON_WHEELDOWN) {
+			zoom_out();
 		}
-	if (button->button == SDL_BUTTON_WHEELUP)
-		if (shift_state == SDL_PRESSED) {
-			zoom += zoom * 0.03;
-			stop_show_search_res();
+		else if (button->button == SDL_BUTTON_WHEELUP) {
+			zoom_in();
 		}
+	}
+}
+
+void moth_gui::zoom_in()
+{
+	zoom += zoom * 0.03;
 	normalize_zoom();
+	stop_show_search_res();
+}
+
+void moth_gui::zoom_out()
+{
+	zoom -= zoom * 0.03;
+	normalize_zoom();
+	stop_show_search_res();
 }
 
 void moth_gui::handle_key_up(SDL_keysym *key)
@@ -334,8 +345,13 @@ void moth_gui::handle_key_down(SDL_keysym *key)
 	case SDLK_i:
 		show_index();
 		break;
-	case SDLK_UP:
-	case SDLK_DOWN:
+	case SDLK_PLUS:
+	case SDLK_EQUALS:
+		zoom_in();
+		break;
+	case SDLK_MINUS:
+		zoom_out();
+		break;
 	default:
 		break;
 	}

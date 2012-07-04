@@ -21,6 +21,8 @@ Left and right arrows to flip pages back and forward.
 Mouse to move the book.
 Shift + move mouse up and down to zoom in and zoom out.
 Shift + mouse wheel to zoom in and zoom out.
+'+' - zoom in
+'-' - zoom out
 'g' - open "goto" dialog.
 'i' - open book index.
 's' - save a copy.

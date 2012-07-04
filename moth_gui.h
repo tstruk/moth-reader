@@ -99,6 +99,8 @@ class moth_gui
 	void print_index(moth_index *ptr);
 	void free_index(moth_index *ptr);
 	void show_index();
+	void zoom_in();
+	void zoom_out();
 	bool has_index() {
 		return (NULL != index.next);
 	}
