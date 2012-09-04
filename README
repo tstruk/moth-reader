@@ -9,6 +9,7 @@ The following tools and libraries need to be installed to build moth:
 - gdk-dev
 - poppler-glib
 - zenity
+- ttf-freefont
 Note: zenity is used in runtime for dialogs.
 
 #Installation
