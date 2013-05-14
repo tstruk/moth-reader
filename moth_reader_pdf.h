@@ -23,6 +23,7 @@
 
 extern "C" {
 #include <poppler.h>
+#include <gdk/gdk.h>
 }
 #include "moth_reader.h"
 
@@ -41,7 +42,7 @@ public:
 	virtual int get_page_size(int page, double*, double*);
 	virtual int build_index(moth_index&);
 	virtual int save_copy(std::string &url);
-	virtual int search(std::string&, int, std::vector<moth_highlight> &);
+	virtual int search(std::string&, unsigned int, std::vector<moth_highlight> &);
 };
 #endif
 

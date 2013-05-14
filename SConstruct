@@ -13,7 +13,7 @@ env.ParseConfig('pkg-config --cflags --libs sdl || true')
 env.ParseConfig('pkg-config --cflags --libs gl || true')
 env.ParseConfig('pkg-config --cflags --libs glew || true')
 env.ParseConfig('pkg-config --cflags --libs ftgl || true')
-env.ParseConfig('pkg-config --cflags --libs gdkmm-2.4 || true')
+env.ParseConfig('pkg-config --cflags --libs gdkmm-3.0 || true')
 env.ParseConfig('pkg-config --cflags --libs poppler-glib || true')
 
 config = Configure(env);
@@ -39,8 +39,8 @@ if not config.CheckLibWithHeader( 'SDL', 'SDL.h', 'C' ):
 	Exit(1)
 
 # Check if gdk-dev is there
-if not config.CheckLibWithHeader( 'gdkmm-2.4', 'gdkmm.h', 'C++' ):
-	print "gdkmm-2.4 Must be installed!"
+if not config.CheckLibWithHeader( 'gdkmm-3.0', 'gdkmm.h', 'C++' ):
+	print "gdkmm-3.0 Must be installed!"
 	Exit(1)
 
 # Check if poppler-glib is there

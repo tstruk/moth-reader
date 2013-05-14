@@ -43,11 +43,12 @@ protected:
 	void get_url(const std::string &file, std::string &url);
 public:
 	moth_reader();
+	virtual ~moth_reader() {};
 	virtual unsigned int get_pages() = 0;
 	virtual int get_page(int, GdkPixbuf*&) = 0;
 	virtual int get_page_size(int, double*, double*) = 0;
 	virtual int build_index(moth_index&) = 0;
 	virtual int save_copy(std::string&) = 0;
-	virtual int search(std::string&, int, std::vector <moth_highlight>&) = 0;
+	virtual int search(std::string&, unsigned int, std::vector <moth_highlight>&) = 0;
 };
 #endif

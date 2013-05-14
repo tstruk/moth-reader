@@ -24,8 +24,8 @@
 #include <glib.h>
 
 #define MOTH_VER_BIG 0
-#define MOTH_VER_SMALL 3
-#define MOTH_VER_STRING "0.3"
+#define MOTH_VER_SMALL 4
+#define MOTH_VER_STRING "0.4"
 
 #define FAIL -1
 #define SUCCESS 0

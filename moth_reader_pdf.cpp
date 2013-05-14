@@ -62,8 +62,30 @@ int moth_reader_pdf::get_page(int num, GdkPixbuf *&pixbuff)
 {
 	double w, h;
 	get_page_size(num, &w, &h);
-	poppler_page_render_to_pixbuf(pages[num], 0, 0, w, h, 2, 0, pixbuff);
-	return SUCCESS;
+	w *= 2;
+	h *= 2;
+	cairo_surface_t *s = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
+	if (CAIRO_STATUS_SUCCESS != cairo_surface_status(s)) {
+		std::cerr << "get_page - failed cairo_image_surface_create" << std::endl;
+		return FAIL;
+	}
+
+	cairo_t *cr = cairo_create(s);
+	if (CAIRO_STATUS_SUCCESS != cairo_status(cr)) {
+		std::cerr << "get_page - failed cairo_create" << std::endl;
+		return FAIL;
+	}
+	cairo_save(cr);
+	cairo_scale(cr, 2, 2);
+	poppler_page_render(pages[num], cr);
+	cairo_restore(cr);
+	cairo_set_operator(cr, CAIRO_OPERATOR_DEST_OVER);
+	cairo_set_source_rgb(cr, 1, 1, 1);
+	cairo_paint(cr);
+	cairo_destroy(cr);
+	pixbuff = gdk_pixbuf_get_from_surface(s, 0, 0, w, h);
+	cairo_surface_destroy(s);
+	return pixbuff != NULL ? SUCCESS : FAIL;
 }
 
 int moth_reader_pdf::get_page_size(int page, double *w, double *h)
@@ -167,7 +189,7 @@ int moth_reader_pdf::save_copy(std::string &url)
 	}
 }
 
-int moth_reader_pdf::search(std::string& str, int page,
+int moth_reader_pdf::search(std::string& str, unsigned int page,
 							std::vector<moth_highlight> &result)
 {
 
