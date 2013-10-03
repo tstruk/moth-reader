@@ -1,0 +1,8 @@
+*.o
+*~
+*.swp
+.sconf_temp
+.sconsign.dblite
+config.log
+moth
+moth_index_gtk
