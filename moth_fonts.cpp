@@ -24,7 +24,8 @@
 
 static const char *const font_dirs[] = {
 	"/usr/share/fonts/truetype/freefont/",
-	"/usr/share/fonts/TrueType/freefont/"
+	"/usr/share/fonts/TrueType/freefont/",
+	"/usr/share/fonts/gnu-free/"
 };
 
 static const char *const font_files[] = {

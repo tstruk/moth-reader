@@ -2,7 +2,6 @@
 
 # Setup Build Environment
 env = Environment(
-#   CCFLAGS='-std=gnu++0x -g -O0 -Wall',
    CCFLAGS='-std=gnu++0x -O3 -Wall',
 )
 
@@ -11,6 +10,7 @@ SConscript(['moth_index_gui/SConstruct'])
 # External Libs
 env.ParseConfig('pkg-config --cflags --libs sdl || true')
 env.ParseConfig('pkg-config --cflags --libs gl || true')
+env.ParseConfig('pkg-config --cflags --libs glu || true')
 env.ParseConfig('pkg-config --cflags --libs glew || true')
 env.ParseConfig('pkg-config --cflags --libs ftgl || true')
 env.ParseConfig('pkg-config --cflags --libs gdkmm-3.0 || true')
