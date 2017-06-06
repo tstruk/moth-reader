@@ -440,7 +440,7 @@ void moth_gui::goto_page(unsigned int number)
 	if (check_textures())
 		load_textures();
 	book->set_page(page_before);
-	move_by_pages = abs(number - page_before);
+	move_by_pages = abs((int)number - page_before);
 	moving_page = 1;
 	moving_page_ctr = moving_ctr;
 	sleep_time = moving_sleep_time;
