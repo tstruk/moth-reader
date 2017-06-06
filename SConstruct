@@ -2,7 +2,7 @@
 
 # Setup Build Environment
 env = Environment(
-   CCFLAGS='-std=gnu++0x -O3 -Wall',
+   CCFLAGS='-std=gnu++0x -O3 -Wall -I/usr/include/GL -I/usr/include/GLW',
 )
 
 SConscript(['moth_index_gui/SConstruct'])
