@@ -1,8 +1,9 @@
-# Scons build Script.
+# Moth ebook reader Scons build Script.
+# Copyright (C) Tadeusz Struk 2021 <tstruk@gmail.com>
 
 # Setup Build Environment
 env = Environment(
-   CCFLAGS='-std=gnu++0x -O3 -Wall -Wextra'
+	CCFLAGS='-std=gnu++0x -O3 -g -Wall -Werror -Wextra -Wno-missing-field-initializers',
 )
 
 SConscript(['moth_index_gui/SConstruct'])
@@ -20,12 +21,12 @@ env.ParseConfig('pkg-config --cflags --libs poppler-glib || true')
 config = Configure(env);
 
 # Check if OpenGL is there
-if not config.CheckLibWithHeader('GL', 'GL/gl.h', 'C'):
+if not config.CheckLibWithHeader('GL', 'GL/gl.h', 'C++'):
 	print("OpenGL Must be installed")
 	Exit(1)
 
 # Check if OpenGL Extension Wrangler is there
-if not config.CheckLibWithHeader('GLEW', 'GL/glew.h', 'C'):
+if not config.CheckLibWithHeader('GLEW', 'GL/glew.h', 'C++'):
 	print("OpenGL Extension Wrangler Must be installed (libglew-dev)")
 	Exit(1)
 
@@ -35,7 +36,7 @@ if not config.CheckLibWithHeader('ftgl', 'ftgl.h', 'C++'):
 	Exit(1)
 
 # Check if SDL is there
-if not config.CheckLibWithHeader('SDL', 'SDL.h', 'C'):
+if not config.CheckLibWithHeader('SDL', 'SDL.h', 'C++'):
 	print("SDL Must be installed!")
 	Exit(1)
 
@@ -50,7 +51,7 @@ if not config.CheckLibWithHeader('gtkmm-3.0', 'gtkmm-3.0/gtkmm.h', 'C++'):
 	Exit(1)
 
 # Check if poppler-glib is there
-if not config.CheckLibWithHeader('poppler-glib', 'poppler.h', 'C'):
+if not config.CheckLibWithHeader('poppler-glib', 'poppler.h', 'C++'):
 	print("libpoppler-glib-dev Must be installed!")
 	Exit(1)
 
@@ -59,16 +60,16 @@ env = config.Finish();
 
 # Build main program
 moth = env.Program(
-            target =  'moth',
-            source = ['moth.cpp',
-                      'moth_image.cpp',
-                      'moth_gui.cpp',
-                      'moth_gui_dialog.cpp',
-                      'moth_index.cpp',
-                      'moth_book.cpp',
-                      'moth_fonts.cpp',
-                      'moth_reader.cpp',
-                      'moth_reader_pdf.cpp'])
+	target =  'moth',
+	source = ['moth.cpp',
+		  'moth_image.cpp',
+		  'moth_gui.cpp',
+		  'moth_gui_dialog.cpp',
+		  'moth_index.cpp',
+		  'moth_book.cpp',
+		  'moth_fonts.cpp',
+		  'moth_reader.cpp',
+		  'moth_reader_pdf.cpp'])
 
 env.Install('/usr/bin', moth)
 env.Alias('install', '/usr/bin')
