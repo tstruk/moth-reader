@@ -24,8 +24,9 @@
 
 static const char *const font_dirs[] = {
 	"/usr/share/fonts/truetype/freefont/",
+	"/usr/share/fonts/truetype/dejavu/"
 	"/usr/share/fonts/TrueType/freefont/",
-	"/usr/share/fonts/gnu-free/"
+	"/usr/share/fonts/gnu-free/",
 };
 
 static const char *const font_files[] = {
@@ -34,41 +35,34 @@ static const char *const font_files[] = {
 	"FreeMonoOblique.ttf",
 	"FreeSans.ttf",
 	"FreeSerif.ttf",
+	"DejaVuSans.ttf"
 };
 
 void moth_fonts::find_system_fonts()
 {
 	DIR *dir;
 	unsigned int x;
+
 	for (x = 0; x < (sizeof(font_dirs)/sizeof(font_dirs[0])); x++)
 	{
 		dir = opendir(font_dirs[x]);
 		if (dir)
 			break;
-		else {
-			switch(errno) {
-				case EACCES:
-					{
-						std::cerr << "Can not open font dir " << font_dirs[x]
-								  << std::endl;
-						std::cerr << "Permission denied" << std::endl;
-						throw moth_bad_font();
-					}
-				case ENOENT:
-					break;
-			}
+		else if (errno == EACCES) {
+			std::cerr << "Can not open font dir " << font_dirs[x];
+			std::cerr << "Error: " << errno << std::endl;
+			throw moth_bad_font();
 		}
 	}
 	if (dir) {
 		struct dirent *f;
-		for (unsigned int i = 0;
-				i < (sizeof(font_files)/sizeof(font_files[0])); i++)
-		{
+		unsigned int i;
+
+		for (i = 0; i < (sizeof(font_files) / sizeof(font_files[0])); i++) {
 			while((f = readdir(dir))) {
 				if (strcmp(f->d_name, font_files[i]) == 0) {
 					ttf_file = std::string(font_dirs[x]);
 					ttf_file += font_files[i];
-					std::cout << "using fonts " << ttf_file << std::endl;
 					closedir(dir);
 					return;
 				}
