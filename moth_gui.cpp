@@ -493,23 +493,21 @@ void moth_gui::load_textures()
 {
 	double w, h;
 	char buff[30];
-	GError *err = NULL;
 	bool scale = false;
 	GdkPixbuf *pixbuff_diffrent_size;
 	GdkPixbuf *pixbuff_resized;
 	GdkPixbuf *pixbuff = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-										true, 8, page_width * 2,
-										page_height * 2);
+				true, 8, page_width * 2,
+				page_height * 2);
 	if (!pixbuff) {
 		std::cerr << "Could not allocate buffer for texture" << std::endl;
 		throw moth_bad_gui();
 	}
-	GdkPixbuf *moth_img = gdk_pixbuf_new_from_inline(600 * 600 * 4 + 1,
-						     (guint8*)img_data,
-						     FALSE, &err);
+	GdkPixbuf *moth_img = gdk_pixbuf_new_from_data((const guchar *) img_data + 24,
+					GDK_COLORSPACE_RGB,
+					true, 8, 600 * 4, 600 * 4, 2400, NULL, NULL);
 	if (!moth_img) {
-		std::cerr << "Could not create texture, err " << err->code << std::endl;
-		std::cerr << "Err msg " << err->message << std::endl;
+		std::cerr << "Could not create texture" << std::endl;
 		g_object_unref(pixbuff);
 		throw moth_bad_gui();
 	}
@@ -552,7 +550,7 @@ void moth_gui::load_textures()
 			/* Need to scale */
 			scale = true;
 			pixbuff_diffrent_size = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-										true, 8, w * 2, h * 2);
+							true, 8, w * 2, h * 2);
 			if (!pixbuff_diffrent_size) {
 				std::cerr << "Could not create texture" << std::endl;
 				g_object_unref(pixbuff);
@@ -572,9 +570,10 @@ void moth_gui::load_textures()
 		if (scale) {
 
 			if (SUCCESS == book->get_page(i, pixbuff_diffrent_size)) {
-				pixbuff_resized = gdk_pixbuf_scale_simple(pixbuff_diffrent_size,
+				pixbuff_resized =
+					gdk_pixbuf_scale_simple(pixbuff_diffrent_size,
 							page_width * 2, page_height * 2,
-									GDK_INTERP_BILINEAR);
+							GDK_INTERP_BILINEAR);
 				if (!pixbuff_resized) {
 					std::cerr << "Could not resize texture" << std::endl;
 					g_object_unref(pixbuff);
@@ -597,8 +596,8 @@ void moth_gui::load_textures()
 		} else {
 			if (SUCCESS == book->get_page(i, pixbuff)) {
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, page_width * 2,
-							 page_height * 2, 0, GL_RGBA,
-							 GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
+						page_height * 2, 0, GL_RGBA,
+						GL_UNSIGNED_BYTE, gdk_pixbuf_get_pixels(pixbuff));
 				textures_state[i] = 1;
 			} else {
 				std::cerr << "Could not get texture for page "<< i << std::endl;
@@ -657,13 +656,11 @@ void moth_gui::load_textures()
 
 void moth_gui::create_textures()
 {
-	GError *err = NULL;
-	GdkPixbuf *img = gdk_pixbuf_new_from_inline(420 * 300 * 4 + 1,
-						(guint8*)last_page_img,
-						FALSE, &err);
+	GdkPixbuf *img = gdk_pixbuf_new_from_data((const guchar *) last_page_img + 24,
+						GDK_COLORSPACE_RGB,
+						true, 8, 420 * 4, 300 * 4, 2400, NULL, NULL);
 	if (!img) {
-		std::cerr << "Could not create texture, err " << err->code << std::endl;
-		std::cerr << "Err msg " << err->message << std::endl;
+		std::cerr << "Could not create texture" << std::endl;
 		throw moth_bad_gui();
 	}
 
