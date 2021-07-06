@@ -42,9 +42,9 @@ moth_dialog_response moth_dialog::show_dialog(std::string &cmd) throw()
 		return MOTH_DIALOG_ERROR;
 
 	memset(line, '\0', len);
-	fgets(line, len, stream);
+	char *c = fgets(line, len, stream);
 
-	if (strlen(line) == 0) {
+	if (strlen(line) == 0 || *c == EOF) {
 		pclose(stream);
 		stream = NULL;
 		return MOTH_DIALOG_ERROR;
