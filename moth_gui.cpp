@@ -505,8 +505,8 @@ void moth_gui::load_textures()
 		throw moth_bad_gui();
 	}
 	GdkPixbuf *moth_img = gdk_pixbuf_new_from_inline(600 * 600 * 4 + 1,
-                                                     (guint8*)img_data,
-                                                     FALSE, &err);
+						     (guint8*)img_data,
+						     FALSE, &err);
 	if (!moth_img) {
 		std::cerr << "Could not create texture, err " << err->code << std::endl;
 		std::cerr << "Err msg " << err->message << std::endl;
@@ -534,7 +534,7 @@ void moth_gui::load_textures()
 		}
 	}
 	double num_page_info = (num_pages > pages_to_load) ?
-		                                pages_to_load : num_pages;
+						pages_to_load : num_pages;
 
 	for(unsigned int x = 0, str_index = 0, ctr = 10; x < pages_to_load; x++) {
 		/* Check if the texture for this page is already loaded */
@@ -573,7 +573,7 @@ void moth_gui::load_textures()
 
 			if (SUCCESS == book->get_page(i, pixbuff_diffrent_size)) {
 				pixbuff_resized = gdk_pixbuf_scale_simple(pixbuff_diffrent_size,
-					                page_width * 2, page_height * 2,
+							page_width * 2, page_height * 2,
 									GDK_INTERP_BILINEAR);
 				if (!pixbuff_resized) {
 					std::cerr << "Could not resize texture" << std::endl;
@@ -659,8 +659,8 @@ void moth_gui::create_textures()
 {
 	GError *err = NULL;
 	GdkPixbuf *img = gdk_pixbuf_new_from_inline(420 * 300 * 4 + 1,
-                                                (guint8*)last_page_img,
-                                                FALSE, &err);
+						(guint8*)last_page_img,
+						FALSE, &err);
 	if (!img) {
 		std::cerr << "Could not create texture, err " << err->code << std::endl;
 		std::cerr << "Err msg " << err->message << std::endl;
@@ -1178,26 +1178,34 @@ void moth_gui::init_opengl()
 
 void moth_gui::init_video()
 {
-	GdkScreen *gdk_screen = gdk_screen_get_default();
-	int error = SDL_Init(SDL_INIT_VIDEO);
-	if (error != SUCCESS || NULL == gdk_screen) {
-		std::cerr<< "Video initialization failed: " <<
-				 SDL_GetError( ) << std::endl;
+	GdkDisplay *gdk_display = gdk_display_get_default();
+	if (!gdk_display) {
+		std::cerr<< "No GdkDisplay" << std::endl;
 		throw moth_bad_gui();
 	}
-	int monitor = gdk_screen_get_primary_monitor(gdk_screen);
+
+	GdkMonitor *gdk_monitor = gdk_display_get_primary_monitor(gdk_display);
+	if (!gdk_monitor) {
+		std::cerr<< "No GdkMonitor" << std::endl;
+		throw moth_bad_gui();
+	}
+
+	int error = SDL_Init(SDL_INIT_VIDEO);
+	if (error != SUCCESS) {
+		std::cerr<< "Video initialization failed: " << SDL_GetError() << std::endl;
+		throw moth_bad_gui();
+	}
 	GdkRectangle res;
-	gdk_screen_get_monitor_geometry(gdk_screen, monitor, &res);
+	gdk_monitor_get_geometry(gdk_monitor, &res);
+
 	const SDL_VideoInfo *info = SDL_GetVideoInfo();
 	if (!info) {
-		std::cerr<< "Get Video info failed: " <<
-				 SDL_GetError( ) << std::endl;
+		std::cerr<< "Get Video info failed: " << SDL_GetError() << std::endl;
 		throw moth_bad_gui();
 	}
 	bpp = info->vfmt->BitsPerPixel;
 	width = res.width;
 	height = res.height;
-
 	flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
@@ -1206,8 +1214,7 @@ void moth_gui::init_video()
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	screen = SDL_SetVideoMode(width, height, bpp, flags);
 	if(NULL == screen) {
-		std::cerr<< "Set Video Mode failed: " <<
-				 SDL_GetError( ) << std::endl;
+		std::cerr<< "Set Video Mode failed: " << SDL_GetError() << std::endl;
 		throw moth_bad_gui();
 	}
 	SDL_WM_SetCaption("moth - " MOTH_VER_STRING, NULL);
@@ -1221,6 +1228,6 @@ void moth_gui::book_select(std::string &file)
 	moth_dialog_response resp = file_dialog.choose_file(type, file);
 	if(resp != MOTH_DIALOG_OK || file.empty())
 		throw moth_bad_cancel();
+
 	rm_newline(file);
 }
-
