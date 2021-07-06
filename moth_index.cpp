@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cassert>
 #include <linux/limits.h>
 
 #include "moth.h"
@@ -35,6 +36,8 @@
 int moth_index_gui::show(moth_gui *gui) throw()
 {
 	char *ptr;
+	int sz;
+
 	mkfifo(PIPE, 0666);
 	stream = popen(CMD, "r");
 	if (!stream || errno == ECHILD) {
@@ -45,7 +48,8 @@ int moth_index_gui::show(moth_gui *gui) throw()
 		return FAIL;
 	}
 	print_index(&gui->index);
-	write(pipe, "\n", 1);
+	sz = write(pipe, "\n", 1);
+	assert(sz == 1);
 	close(pipe);
 	memset(line, '\0', line_len);
 	do {
@@ -65,18 +69,26 @@ int moth_index_gui::show(moth_gui *gui) throw()
 void moth_index_gui::print_index(moth_index *ptr) throw()
 {
 	char buf[4];
+	int sz;
+
 	while (ptr)
 	{
-		write(pipe, ptr->name.c_str(), ptr->name.length());
-		write(pipe, " PAGE: ", 7);
+		sz = write(pipe, ptr->name.c_str(), ptr->name.length());
+		assert(sz == static_cast<int>(ptr->name.length()));
+		sz = write(pipe, " PAGE: ", 7);
+		assert(sz == 7);
 		sprintf(buf, "%d", ptr->page);
-		write(pipe, buf, strlen(buf));
-		write(pipe, "\n", 1);
+		sz = write(pipe, buf, strlen(buf));
+		assert(sz == static_cast<int>(strlen(buf)));
+		sz = write(pipe, "\n", 1);
+		assert(sz == 1);
 
 		if (ptr->child) {
-			write(pipe, ">", 1);
+			sz = write(pipe, ">", 1);
+			assert(sz == 1);
 			print_index(ptr->child);
-			write(pipe, "<", 1);
+			sz = write(pipe, "<", 1);
+			assert(sz == 1);
 		}
 		ptr = ptr->next;
 	}
