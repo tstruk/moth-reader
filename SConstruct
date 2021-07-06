@@ -55,6 +55,10 @@ if not config.CheckLibWithHeader('poppler-glib', 'poppler.h', 'C++'):
 	print("libpoppler-glib-dev Must be installed!")
 	Exit(1)
 
+if not config.CheckProg('zenity'):
+	print("zenity tool Must be installed!")
+	Exit(1)
+
 # Validate the configuration and assign it to env
 env = config.Finish();
 
