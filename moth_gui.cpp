@@ -39,10 +39,10 @@ const GLfloat moth_gui::page_info_ctr_val = 2.0;
 const GLfloat moth_gui::page_info_fade_by = 0.1;
 
 const char *text_info = "Please wait";
-const char *text_info_tab[] = {"Mapping textures %d%%",
-							   "Mapping textures %d%% .",
-							   "Mapping textures %d%% ..",
-							   "Mapping textures %d%% ..."};
+const char *text_info_tab[] = { "Mapping textures %d%%",
+				"Mapping textures %d%% .",
+				"Mapping textures %d%% ..",
+				"Mapping textures %d%% ..." };
 
 static GLfloat font_color[] = {1.0, 0.7, 0.3, 1.0};
 static GLfloat line_color[] = {0.5, 0.5, 0.5};
