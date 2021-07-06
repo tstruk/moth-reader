@@ -168,7 +168,7 @@ int moth_reader_pdf::build_index(moth_index &index)
 	try {
 		ret = walk_index(index, iter);
 	}
-	catch (moth_bad_pdf) {
+	catch (moth_bad_pdf &) {
 		ret = FAIL;
 	}
 	poppler_index_iter_free(iter);
