@@ -2,7 +2,7 @@
 
 # Setup Build Environment
 env = Environment(
-   CCFLAGS='-std=gnu++0x -O3'
+   CCFLAGS='-std=gnu++0x -O3 -Wall -Wextra'
 )
 
 env.Append(CPPPATH = ['.', '..'])
@@ -13,7 +13,7 @@ env.ParseConfig('pkg-config --cflags --libs gtkmm-3.0 || true')
 config = Configure(env);
 
 # Check if gtk-dev is there
-if not config.CheckLibWithHeader( 'gtkmm-3.0', 'gtkmm.h', 'C++' ):
+if not config.CheckLibWithHeader('gtkmm-3.0', 'gtkmm-3.0/gtkmm.h', 'C++'):
 	print ("gtkmm-3.0 or newer must be installed!")
 	Exit(1)
 
@@ -23,7 +23,7 @@ env = config.Finish();
 # Build main program
 moth_index = env.Program(
                target = 'moth_index_gtk',
-               source = [ 'moth_index_gui_main.cpp', 'moth_index_gui_win.cpp'])
+               source = ['moth_index_gui_main.cpp', 'moth_index_gui_win.cpp'])
 
 Command("../moth_index_gtk", "moth_index_gtk", Copy("$TARGET", "$SOURCE"))
 

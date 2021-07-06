@@ -16,9 +16,7 @@
  *
  *************************************************************************/
 
-#include <glew.h>
-#include <gl.h>
-#include <glu.h>
+#include <GL/glew.h>
 #include <gdk/gdk.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <algorithm>

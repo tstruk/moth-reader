@@ -2,7 +2,7 @@
 
 # Setup Build Environment
 env = Environment(
-   CCFLAGS='-std=gnu++0x -O3 -Wall -I/usr/include/GL -I/usr/include/GLW',
+   CCFLAGS='-std=gnu++0x -O3 -Wall -Wextra'
 )
 
 SConscript(['moth_index_gui/SConstruct'])
@@ -14,17 +14,18 @@ env.ParseConfig('pkg-config --cflags --libs glu || true')
 env.ParseConfig('pkg-config --cflags --libs glew || true')
 env.ParseConfig('pkg-config --cflags --libs ftgl || true')
 env.ParseConfig('pkg-config --cflags --libs gdkmm-3.0 || true')
+env.ParseConfig('pkg-config --cflags --libs gtkmm-3.0 || true')
 env.ParseConfig('pkg-config --cflags --libs poppler-glib || true')
 
 config = Configure(env);
 
 # Check if OpenGL is there
-if not config.CheckLibWithHeader('GL', 'gl.h', 'C'):
+if not config.CheckLibWithHeader('GL', 'GL/gl.h', 'C'):
 	print("OpenGL Must be installed")
 	Exit(1)
 
 # Check if OpenGL Extension Wrangler is there
-if not config.CheckLibWithHeader('GLEW', 'glew.h', 'C'):
+if not config.CheckLibWithHeader('GLEW', 'GL/glew.h', 'C'):
 	print("OpenGL Extension Wrangler Must be installed (libglew-dev)")
 	Exit(1)
 
@@ -39,8 +40,13 @@ if not config.CheckLibWithHeader('SDL', 'SDL.h', 'C'):
 	Exit(1)
 
 # Check if gdk-dev is there
-if not config.CheckLibWithHeader('gdkmm-3.0', 'gdkmm.h', 'C++'):
+if not config.CheckLibWithHeader('gdkmm-3.0', 'gdkmm-3.0/gdkmm.h', 'C++'):
 	print("gdkmm-3.0 Must be installed!")
+	Exit(1)
+
+# Check if gtk-dev is there
+if not config.CheckLibWithHeader('gtkmm-3.0', 'gtkmm-3.0/gtkmm.h', 'C++'):
+	print ("gtkmm-3.0 or newer must be installed!")
 	Exit(1)
 
 # Check if poppler-glib is there

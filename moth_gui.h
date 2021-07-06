@@ -19,7 +19,8 @@
 #define __MOTH_GUI__
 
 #include <SDL.h>
-#include <gl.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include "moth.h"
 #include "moth_book.h"
 #include "moth_index.h"
