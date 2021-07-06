@@ -16,7 +16,6 @@
  *
  *************************************************************************/
 
-
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -35,50 +34,50 @@
 
 int moth_index_gui::show(moth_gui *gui) throw()
 {
-    char *ptr;
-    mkfifo(PIPE, 0666);
+	char *ptr;
+	mkfifo(PIPE, 0666);
 	stream = popen(CMD, "r");
-    if (!stream || errno == ECHILD) {
-        return FAIL;
-    }
-    pipe = open(PIPE, O_WRONLY);
-    if (pipe < 0) {
-        return FAIL;
-    }
-    print_index(&gui->index);
-    write(pipe, "\n", 1);
-    close(pipe);
-    memset(line, '\0', line_len);
-    do{
-	    ptr = fgets(line, line_len, stream);
-        if (ptr) {
-            gui->goto_page(atoi(line));
-            for(int i = 0; i < 20; i++)
-                gui->show_pages();
-        }
-    } while (ptr);
+	if (!stream || errno == ECHILD) {
+		return FAIL;
+	}
+	pipe = open(PIPE, O_WRONLY);
+	if (pipe < 0) {
+		return FAIL;
+	}
+	print_index(&gui->index);
+	write(pipe, "\n", 1);
+	close(pipe);
+	memset(line, '\0', line_len);
+	do {
+		ptr = fgets(line, line_len, stream);
+		if (ptr) {
+			gui->goto_page(atoi(line));
+			for(int i = 0; i < 20; i++)
+				gui->show_pages();
+		}
+	} while (ptr);
 	pclose(stream);
-    stream = NULL;
-    unlink(PIPE);
-    return SUCCESS;
+	stream = NULL;
+	unlink(PIPE);
+	return SUCCESS;
 }
 
 void moth_index_gui::print_index(moth_index *ptr) throw()
 {
-    char buf[4];
-    while (ptr)
-    {
-        write(pipe, ptr->name.c_str(), ptr->name.length());
-        write(pipe, " PAGE: ", 7);
-        sprintf(buf, "%d", ptr->page);
-        write(pipe, buf, strlen(buf));
-        write(pipe, "\n", 1);
+	char buf[4];
+	while (ptr)
+	{
+		write(pipe, ptr->name.c_str(), ptr->name.length());
+		write(pipe, " PAGE: ", 7);
+		sprintf(buf, "%d", ptr->page);
+		write(pipe, buf, strlen(buf));
+		write(pipe, "\n", 1);
 
-        if (ptr->child) {
-            write(pipe, ">", 1);
-            print_index(ptr->child);
-            write(pipe, "<", 1);
-        }
-        ptr = ptr->next;
-    }
+		if (ptr->child) {
+			write(pipe, ">", 1);
+			print_index(ptr->child);
+			write(pipe, "<", 1);
+		}
+		ptr = ptr->next;
+	}
 }
