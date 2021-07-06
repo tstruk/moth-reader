@@ -38,80 +38,73 @@ moth_index_gui::moth_index_gui(string file)
 	button_box.pack_start(button, Gtk::PACK_SHRINK);
 	button_box.set_border_width(5);
 	button_box.set_layout(Gtk::BUTTONBOX_END);
-	button.signal_clicked().connect(sigc::mem_fun(*this,
-	                                       &moth_index_gui::on_button_quit) );
+	button.signal_clicked().connect(sigc::mem_fun(*this, &moth_index_gui::on_button_quit));
 	tree_model = Gtk::TreeStore::create(columns);
 	tree_view.set_model(tree_model);
-    ifstream pipe(file.c_str());
-    if (!pipe.is_open()) {
-        cerr << "Unable to open file \"" << file << "\"" << endl;
-        throw moth_exception();
-    }
-    size_t pos;
-    static const int depth = 10;
-    int current = 0, last, page;
-    Gtk::TreeModel::Row parent[depth];
-    Gtk::TreeModel::Row row;
-    string line;
-    bool down, up;
+	ifstream pipe(file.c_str());
+	if (!pipe.is_open()) {
+		cerr << "Unable to open file \"" << file << "\"" << endl;
+		throw moth_exception();
+	}
+	size_t pos;
+	static const int depth = 10;
+	int current = 0, last, page;
+	Gtk::TreeModel::Row parent[depth];
+	Gtk::TreeModel::Row row;
+	string line;
+	bool down, up;
 
-    while (pipe.good())
-    {
-        down = false;
-        up = false;
-        getline (pipe, line);
-        pos = line.rfind("PAGE:");
-        if (pos == string::npos)
-            continue;
-        page = atoi(line.substr(pos + 6).c_str());
-        line = line.substr(0, pos - 1);
-        if (line[0] == '>') {
-            line = line.substr(1);
-            last = current;
-            current++;
-            down = true;
-        }
-        else {
-            last = current;
-            for(unsigned int i = 0; i < line.length(); i++)
-            {
-                if (line[0] == '<') {
-                    line = line.substr(1);
-                    current--;
-                    up = true;
-                }
-                else {
-                    break;
-                }
-            }
-        }
-        if (current == 0) {
-            row = *(tree_model->append());
-            parent[0] = row;
-        }
-        else {
-            if (down) {
-                row = *(tree_model->append(parent[last].children()));
-                parent[current] = row;
-            }
-            else if(up) {
-                row = *(tree_model->append(parent[current-1].children()));
-                parent[current] = row;
-            }
-            else {
-                row = *(tree_model->append(parent[current-1].children()));
-                parent[current] = row;
-            }
-        }
+	while (pipe.good()) {
+		down = false;
+		up = false;
+		getline (pipe, line);
+		pos = line.rfind("PAGE:");
+		if (pos == string::npos)
+			continue;
 
-        row[columns.link] = line;
-        row[columns.page_nr] = page;
-    }
-    pipe.close();
+		page = atoi(line.substr(pos + 6).c_str());
+		line = line.substr(0, pos - 1);
+		if (line[0] == '>') {
+			line = line.substr(1);
+			last = current;
+			current++;
+			down = true;
+		} else {
+			last = current;
+			for(unsigned int i = 0; i < line.length(); i++)
+			{
+				if (line[0] == '<') {
+					line = line.substr(1);
+					current--;
+					up = true;
+				} else {
+					break;
+				}
+			}
+		}
+		if (current == 0) {
+			row = *(tree_model->append());
+			parent[0] = row;
+		} else {
+			if (down) {
+				row = *(tree_model->append(parent[last].children()));
+				parent[current] = row;
+			} else if(up) {
+				row = *(tree_model->append(parent[current-1].children()));
+				parent[current] = row;
+			} else {
+				row = *(tree_model->append(parent[current-1].children()));
+				parent[current] = row;
+			}
+		}
+
+		row[columns.link] = line;
+		row[columns.page_nr] = page;
+	}
+	pipe.close();
 	tree_view.append_column("", columns.link);
 	tree_view.append_column("", columns.page_nr);
-	tree_view.signal_row_activated().connect(
-            sigc::mem_fun(*this, &moth_index_gui::on_row_clicked));
+	tree_view.signal_row_activated().connect(sigc::mem_fun(*this, &moth_index_gui::on_row_clicked));
 	this->add_events(Gdk::FOCUS_CHANGE_MASK);
 	show_all_children();
 }
@@ -133,7 +126,7 @@ bool moth_index_gui::on_focus_out_event(GdkEventFocus* event)
 }
 
 void moth_index_gui::on_row_clicked(const Gtk::TreeModel::Path& path,
-                Gtk::TreeViewColumn* column)
+	Gtk::TreeViewColumn* column)
 {
 	(void) column;
 	Gtk::TreeModel::iterator iter = tree_model->get_iter(path);
