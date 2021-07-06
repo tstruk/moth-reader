@@ -64,7 +64,7 @@ void moth_gui::print_index(moth_index *ptr)
 
 void moth_gui::free_index(moth_index *ptr)
 {
-	/*TODO*/
+	(void) ptr;
 }
 
 moth_gui::~moth_gui()
@@ -539,8 +539,8 @@ void moth_gui::load_textures()
 			continue;
 		}
 
-		if ((i > (unsigned int)(num_pages - 1)) || (i < 0))
-				break;
+		if (i > (unsigned int)(num_pages - 1))
+			break;
 
 		/* Support only ebooks with all pages of the same size  */
 		book->get_page_size(i, &w, &h);

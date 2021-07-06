@@ -73,7 +73,7 @@ moth_index_gui::moth_index_gui(string file)
         }
         else {
             last = current;
-            for(int i = 0; i < line.length(); i++)
+            for(unsigned int i = 0; i < line.length(); i++)
             {
                 if (line[0] == '<') {
                     line = line.substr(1);
@@ -127,6 +127,7 @@ void moth_index_gui::on_button_quit()
 
 bool moth_index_gui::on_focus_out_event(GdkEventFocus* event)
 {
+	(void) event;
 	hide();
 	return false;
 }
@@ -134,6 +135,7 @@ bool moth_index_gui::on_focus_out_event(GdkEventFocus* event)
 void moth_index_gui::on_row_clicked(const Gtk::TreeModel::Path& path,
                 Gtk::TreeViewColumn* column)
 {
+	(void) column;
 	Gtk::TreeModel::iterator iter = tree_model->get_iter(path);
 	if(iter) {
 		Gtk::TreeModel::Row row = *iter;

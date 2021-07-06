@@ -24,8 +24,8 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2)
-        return -1;
+	if (argc < 2)
+		return -1;
 
 	Gtk::Main kit(argc, argv);
 	moth_index_gui gui(argv[1]);
