@@ -24,92 +24,94 @@
 
 moth_dialog::moth_dialog() throw()
 {
-    stream = NULL;
+	stream = NULL;
 }
 
 moth_dialog::~moth_dialog()
 {
-    if (stream)
-	    pclose(stream);
-    stream = NULL;
+	if (stream)
+		pclose(stream);
+	stream = NULL;
 }
 
 moth_dialog_response moth_dialog::show_dialog(std::string &cmd) throw()
 {
-    cmd += " --title=\"moth " MOTH_VER_STRING " \"";
+	cmd += " --title=\"moth " MOTH_VER_STRING " \"";
 	stream = popen(cmd.c_str(), "r");
-    if (!stream || errno == ECHILD)
-        return MOTH_DIALOG_ERROR;
-    memset(line, '\0', len);
+	if (!stream || errno == ECHILD)
+		return MOTH_DIALOG_ERROR;
+
+	memset(line, '\0', len);
 	fgets(line, len, stream);
-    if (strlen(line) == 0) {
-	    pclose(stream);
-        stream = NULL;
-        return MOTH_DIALOG_ERROR;
-    }
+
+	if (strlen(line) == 0) {
+		pclose(stream);
+		stream = NULL;
+		return MOTH_DIALOG_ERROR;
+	}
 	pclose(stream);
-    stream = NULL;
-    return MOTH_DIALOG_OK;
+	stream = NULL;
+	return MOTH_DIALOG_OK;
 }
 
 moth_dialog_response moth_dialog::choose_file(std::string &type,
-        std::string &file) throw()
+		std::string &file) throw()
 {
-    std::string cmd("zenity --file-selection");
-    if (type.length()) {
-        cmd += " --file-filter=";
-        cmd += type;
-    }
-    moth_dialog_response resp = show_dialog(cmd);
-    if (resp == MOTH_DIALOG_OK) {
-        file = line;
-    }
-    return resp;
+	std::string cmd("zenity --file-selection");
+	if (type.length()) {
+		cmd += " --file-filter=";
+		cmd += type;
+	}
+	moth_dialog_response resp = show_dialog(cmd);
+	if (resp == MOTH_DIALOG_OK) {
+		file = line;
+	}
+	return resp;
 }
 
 moth_dialog_response moth_dialog::save_file(std::string &file) throw()
 {
-    std::string cmd("zenity --file-selection --save --confirm-overwrite");
-    moth_dialog_response resp = show_dialog(cmd);
-    if (resp == MOTH_DIALOG_OK) {
-        file = line;
-    }
-    return resp;
+	std::string cmd("zenity --file-selection --save --confirm-overwrite");
+	moth_dialog_response resp = show_dialog(cmd);
+	if (resp == MOTH_DIALOG_OK) {
+		file = line;
+	}
+	return resp;
 }
 
 moth_dialog_response moth_dialog::input(std::string &info,
-        std::string &input) throw()
+		std::string &input) throw()
 {
-    std::string cmd("zenity --entry");
-    if (info.length()) {
-        cmd += " --text=";
-        cmd += info;
-    }
-    moth_dialog_response resp = show_dialog(cmd);
-    if (resp == MOTH_DIALOG_OK) {
-        input = line;
-    }
-    return resp;
+	std::string cmd("zenity --entry");
+	if (info.length()) {
+		cmd += " --text=";
+		cmd += info;
+	}
+	moth_dialog_response resp = show_dialog(cmd);
+	if (resp == MOTH_DIALOG_OK) {
+		input = line;
+	}
+	return resp;
 }
 
 moth_dialog_response moth_dialog::info(std::string &info) throw()
 {
-    std::string cmd("zenity --info");
-    if (info.length()) {
-        cmd += " --text=";
-        cmd += info;
-    }
-    moth_dialog_response resp = show_dialog(cmd);
-    return resp;
+	std::string cmd("zenity --info");
+	if (info.length()) {
+		cmd += " --text=";
+		cmd += info;
+	}
+	moth_dialog_response resp = show_dialog(cmd);
+	return resp;
 }
 
 moth_dialog_response moth_dialog::error(std::string &error) throw()
 {
-    std::string cmd("zenity --error");
-    if (error.length()) {
-        cmd += " --text=";
-        cmd += error;
-    }
-    moth_dialog_response resp = show_dialog(cmd);
-    return resp;
+	std::string cmd("zenity --error");
+	if (error.length()) {
+		cmd += " --text=";
+		cmd += error;
+	}
+	moth_dialog_response resp = show_dialog(cmd);
+	return resp;
 }
