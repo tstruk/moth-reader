@@ -14,7 +14,7 @@ config = Configure(env);
 
 # Check if gtk-dev is there
 if not config.CheckLibWithHeader( 'gtkmm-3.0', 'gtkmm.h', 'C++' ):
-	print "gtkmm-3.0 or newer must be installed!"
+	print ("gtkmm-3.0 or newer must be installed!")
 	Exit(1)
 
 # Validate the configuration and assign it to env
