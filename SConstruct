@@ -3,7 +3,7 @@
 
 # Setup Build Environment
 env = Environment(
-	CCFLAGS='-std=gnu++0x -O3 -g -Wall -Werror -Wextra -Wno-missing-field-initializers',
+	CCFLAGS='-std=gnu++17 -O3 -g -Wall -Werror -Wextra -Wno-missing-field-initializers',
 )
 
 SConscript(['moth_index_gui/SConstruct'])
