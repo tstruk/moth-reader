@@ -702,7 +702,7 @@ void moth_gui::show_pages()
 	static GLfloat page_two[3][3][3] = {{{0}},{{0}},{{0}}};
 	static GLfloat page_moving[3][3][3] = {{{0}},{{0}},{{0}}};
 	static GLfloat texpts[2][2][2] = {{{0.0, 0.0}, {1.0, 0.0}},
-									  {{0.0, 1.0}, {1.0, 1.0}}};
+					  {{0.0, 1.0}, {1.0, 1.0}}};
 	static char buf[32] = {0};
 	static const char *page_info = "Page %d out of %d";
 	static const char *pages_info = "Page %d and %d out of %d";
