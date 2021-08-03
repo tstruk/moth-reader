@@ -136,7 +136,7 @@ class moth_gui
 	}
 
 	void rm_newline(std::string& str) {
-		unsigned int i = str.find('\n');
+		std::string::size_type i = str.find('\n');
 		if (i != std::string::npos)
 			str.erase(i);
 	}
