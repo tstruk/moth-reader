@@ -27,10 +27,11 @@ moth_reader::moth_reader()
 }
 
 void moth_reader::get_url(const std::string &path,
-                          std::string &url)
+			  std::string &url)
 {
 	FILE *f = fopen(path.c_str(), "r");
-	if(!f) {
+
+	if (!f) {
 		throw moth_bad_file();
 	}
 	fclose(f);
@@ -45,18 +46,17 @@ void moth_reader::get_url(const std::string &path,
 	/* Count dirs up in relative path */
 	do {
 		loop = strncmp(new_path, dir_up, 3);
-		if(loop == 0) {
+		if (loop == 0) {
 			up_ctr++;
 			new_path += 3;
 		}
-	} while(loop == 0);
+	} while (loop == 0);
 
 	if(0 == up_ctr) {
-		if((strncmp(new_path, current_dir, 2) != 0) &&
-		    (path[0] == slash))
+		if((strncmp(new_path, current_dir, 2) != 0) && (path[0] == slash))
 			pwd = (char*) "";
 	}
-	while(new_path && up_ctr) {
+	while (new_path && up_ctr) {
 		char *p = rindex(pwd, slash);
 		*p = '\0';
 		up_ctr--;
@@ -65,4 +65,3 @@ void moth_reader::get_url(const std::string &path,
 	url += "/";
 	url += new_path;
 }
-

@@ -21,18 +21,16 @@
 #include "moth_book.h"
 #include "moth_reader_pdf.h"
 
-static const char *const formats[] = {".pdf",
-                                      ".mobi"
-                                     };
+static const char *const formats[] = {".pdf", ".mobi" };
 
 moth_format_type moth_book::get_type()
 {
 	moth_format_type type = moth_format_pdf;
-	for(int i = 0; i < moth_format_not_supported; i++) {
+	for (int i = 0; i < moth_format_not_supported; i++) {
 		type = static_cast <moth_format_type>(i);
-		if(std::string::npos !=
-				file_name.find(formats[i],
-					file_name.length() - strlen(formats[i]))) {
+		if (std::string::npos !=
+			file_name.find(formats[i], file_name.length() -
+				strlen(formats[i]))) {
 			return type;
 		}
 	}
@@ -43,14 +41,14 @@ moth_book::moth_book(const std::string& path)
 {
 	file_name = path;
 	type = get_type();
-	if(!(type < moth_format_not_supported)) {
+	if (!(type < moth_format_not_supported)) {
 		throw moth_bad_format();
 	}
-	if(type == moth_format_pdf) {
+	if (type == moth_format_pdf) {
 		reader = new moth_reader_pdf(file_name);
 		current_page = 0;
 	}
-	if(type == moth_format_mobi) {
+	if (type == moth_format_mobi) {
 		/* Not yet supported */
 		throw moth_bad_format();
 	}
@@ -78,7 +76,7 @@ int moth_book::get_page_size(int number, double *w, double *h)
 
 void moth_book::set_page(unsigned int const page)
 {
-	if(page >= reader->get_pages())
+	if (page >= reader->get_pages())
 		current_page = reader->get_pages();
 	else
 		current_page = page;

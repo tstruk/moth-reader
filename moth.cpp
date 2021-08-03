@@ -26,7 +26,7 @@ moth::moth(int argc, char** argv)
 {
 	this->argc = argc;
 	this->argv = argv;
-    gdk_init(&argc, &argv);
+	gdk_init(&argc, &argv);
 }
 
 moth::~moth()
@@ -36,7 +36,7 @@ moth::~moth()
 void moth::help()
 {
 	std::cout<< "Use: " << argv[0] <<
-	         " [path to ebook]" << std::endl;
+			 " [path to ebook]" << std::endl;
 }
 
 int moth::run()
@@ -62,12 +62,12 @@ int moth::run()
 			return FAIL;
 		}
 	} else if (argc == 2) {
-        if ((strncmp(argv[1], "-h", 2) == 0 ) ||
-                (strncmp(argv[1], "--help", 6) == 0)) {
-            help();
+		if ((strncmp(argv[1], "-h", 2) == 0 ) ||
+				(strncmp(argv[1], "--help", 6) == 0)) {
+			help();
 			delete gui;
 			return SUCCESS;
-        }
+		}
 		file = argv[1];
 	} else {
 		help();

@@ -71,7 +71,7 @@ moth_index_gui::moth_index_gui(string file)
 			down = true;
 		} else {
 			last = current;
-			for(unsigned int i = 0; i < line.length(); i++)
+			for (unsigned int i = 0; i < line.length(); i++)
 			{
 				if (line[0] == '<') {
 					line = line.substr(1);
