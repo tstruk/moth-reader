@@ -75,5 +75,8 @@ moth = env.Program(
 		  'moth_reader.cpp',
 		  'moth_reader_pdf.cpp'])
 
+cleanfiles = Glob('*~')
+Clean(moth, cleanfiles)
+
 env.Install('/usr/bin', moth)
 env.Alias('install', '/usr/bin')
